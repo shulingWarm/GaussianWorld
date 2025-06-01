@@ -24,6 +24,9 @@ public:
 	//添加节点
 	void addVertex(FVector vertex);
 
+	//二维形式的添加点
+	void addVertex(float x, float y);
+
 	//生成section里面的归一化坐标
 	void generateNormalCoord();
 };

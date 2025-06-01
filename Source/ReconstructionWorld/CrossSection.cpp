@@ -16,6 +16,11 @@ void CrossSection::addVertex(FVector vertex)
 	this->vertexList.push_back(vertex);
 }
 
+void CrossSection::addVertex(float x, float y)
+{
+	this->addVertex(FVector(x, y, 0));
+}
+
 //基本的更新坐标范围的方法
 void updateRange(float* range, float value)
 {

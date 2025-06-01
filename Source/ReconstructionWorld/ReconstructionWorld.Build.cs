@@ -11,8 +11,8 @@ public class ReconstructionWorld : ModuleRules
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", 
 			"InputCore", "ProceduralMeshComponent",
             "GeometryFramework",
-            "GeometryCore",
-            "DynamicMesh" });
+            "GeometryCore","ImageWrapper",
+            "DynamicMesh", "Networking", "Sockets" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
