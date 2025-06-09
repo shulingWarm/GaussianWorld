@@ -15,7 +15,7 @@ public:
 	}
 
 	//接收消息的逻辑
-	virtual void receive(StreamInterface* stream) override {
+	virtual void receive(StreamInterface* stream, MessageManagerInterface* messageManager) override {
 		//读取收到的字符串
 		std::string receivedMessage = stream->readStr();
 		std::cout << "收到信息: " << receivedMessage << std::endl;

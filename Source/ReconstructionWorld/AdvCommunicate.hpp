@@ -17,6 +17,12 @@ public:
 	//已经建立好的socket连接
 	SocketSolver::SocketType socket;
 
+	//存储在本地的分包管理器
+	PackageMsgManager packageMsgManager;
+
+	//消息管理器的接口
+	MessageManagerInterface* messageInterface = nullptr;
+
 	//初始化系统socket环境
 	static void initSystemSocket() {
 		SocketSolver::initialize();
@@ -27,6 +33,11 @@ public:
 		//建立基本的socket连接
 		connectFlag = SocketSolver::connect(ipString, port, socket);
 		return connectFlag;
+	}
+
+	//获取分包管理器
+	virtual PackageMsgManager* getPackageManager() override {
+		return &packageMsgManager;
 	}
 
 	//写入数据

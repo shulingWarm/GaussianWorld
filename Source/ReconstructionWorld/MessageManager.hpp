@@ -1,10 +1,11 @@
 #pragma once
 #include"StreamInterface.hpp"
 #include"AbstractMessage.hpp"
+#include"PackageMsgManager.hpp"
 #include<vector>
 #include<unordered_map>
 
-class MessageManager {
+class MessageManager : public MessageManagerInterface {
 public:
 	//数据tag的活动范围
 	static constexpr uint32_t TAG_RANGE = 20000;
@@ -39,7 +40,7 @@ public:
 	}
 
 	//发送消息
-	void sendMessage(AbstractMessage& message) {
+	void sendMessage(AbstractMessage& message) override {
 		//判断消息是否注册过
 		if (nameIdMap.count(message.name) == 0) {
 			throw std::runtime_error("Message name not found: " + message.name);
@@ -52,7 +53,7 @@ public:
 	}
 
 	//处理数据头
-	void receiveMessage(uint32_t messageHeader) {
+	void receiveMessage(uint32_t messageHeader) override {
 		std::cout << "收到消息: " << messageHeader << std::endl;
 		//消息队列需要恢复掉叠加的tag
 		messageHeader -= TAG_RANGE;
@@ -60,6 +61,6 @@ public:
 		if (messageHeader >= this->messageList.size()) {
 			throw std::runtime_error("Message header out of range.");
 		}
-		this->messageList[messageHeader]->receive(this->streamInterface);
+		this->messageList[messageHeader]->receive(this->streamInterface, this);
 	}
 };

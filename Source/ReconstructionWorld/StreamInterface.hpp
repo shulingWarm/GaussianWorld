@@ -1,12 +1,15 @@
 #pragma once
 #include<iostream>
 #include<string>
+#include "PackageMsgManager.hpp"
 
 // 数据流的接口
 class StreamInterface {
 public:
 	virtual void receive(char* data, uint32_t dataSize)=0;
 	virtual void send(const char* data, uint32_t dataSize) = 0;
+	//获取分包管理器
+	virtual PackageMsgManager* getPackageManager() = 0;
 
 	//写入数据
 	template<class T>

@@ -10,6 +10,10 @@
 #include"AdvCommunicate.hpp"
 #include "HelloMessage.hpp"
 #include "MessageRunner.hpp"
+#include"ImageMessage.hpp"
+#include"ImageReceiveMessage.hpp"
+#include"ImageEndMessage.hpp"
+#include"ArrayImage.hpp"
 
 #include "Internationalization/Text.h"
 #include "Misc/OutputDevice.h"
@@ -157,6 +161,12 @@ void ASocketTest::sendHello()
 		HelloMessage helloMessage;
 		launchedManager->sendMessage(helloMessage);
 		UE_LOG(LogTemp, Warning, TEXT("Send hello OK!"));
+		// 新建图片
+		ArrayImage* image = new ArrayImage("E:/temp/car.jpeg");
+		// 新建传输图片的消息
+		ImageMessage imageMessage(image);
+		// 发送图片消息
+		launchedManager->sendMessage(imageMessage);
 	}
 }
 
@@ -170,6 +180,9 @@ void ASocketTest::launchMessageManager()
 	auto manager = new MessageManager(commPtr);
 	// 给manager里面注册信息
 	manager->registerMessage(new HelloMessage());
+	manager->registerMessage(new ImageMessage(nullptr));
+	manager->registerMessage(new ImageReceiveMessage());
+	manager->registerMessage(new ImageEndMessage(0));
 	// 新建一个主循环的执行器
 	MessageRunner* runner = new MessageRunner(manager);
 	// 开始执行线程
