@@ -28,17 +28,16 @@ public:
 		ImageSolver* image = imgPackage->image;
 		// 判断请求行是否已经到头了
 		if (idRow == image->getHeight()) {
-			// 发送图片发送完成的信息
-			ImageEndMessage endMessage(packageId);
-			messageManager->sendMessage(endMessage);
-			// 删除消息
-			stream->getPackageManager()->deletePackagInfo(packageId);
+			// 执行完成发送消息的后续操作
+			imgPackage->imageEndOperation->imageEndOperation(image, packageId);
 		}
-		// 获取需要的下一行
-		auto rowData = image->getRowData(idRow);
-		// 图片行数据
-		ImageRowData rowDataMessage(rowData, imgPackage->image->getWidth(), idRow, packageId);
-		// 把图片行数据发送回去
-		messageManager->sendMessage(rowDataMessage);
+		else {
+			// 获取需要的下一行
+			auto rowData = image->getRowData(idRow);
+			// 图片行数据
+			ImageRowData rowDataMessage(rowData, imgPackage->image->getWidth(), idRow, packageId);
+			// 把图片行数据发送回去
+			messageManager->sendMessage(rowDataMessage);
+		}
 	}
 };

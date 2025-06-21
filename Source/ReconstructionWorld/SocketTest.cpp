@@ -13,6 +13,14 @@
 #include"ImageMessage.hpp"
 #include"ImageReceiveMessage.hpp"
 #include"ImageEndMessage.hpp"
+#include"ImageRowDataMessage.hpp"
+#include"HunyuanMeshGenMessage.hpp"
+#include"MeshMessage.hpp"
+#include"VertexArrayBack.hpp"
+#include"RequestMeshVertices.hpp"
+#include"VertexFinishMessage.hpp"
+#include"MeshTestMessage.hpp"
+
 #include"ArrayImage.hpp"
 
 #include "Internationalization/Text.h"
@@ -158,15 +166,21 @@ void ASocketTest::sendHello()
 {
 	//通过已经启动的manager发送一个信息
 	if (launchedManager != nullptr) {
-		HelloMessage helloMessage;
-		launchedManager->sendMessage(helloMessage);
-		UE_LOG(LogTemp, Warning, TEXT("Send hello OK!"));
-		// 新建图片
-		ArrayImage* image = new ArrayImage("E:/temp/car.jpeg");
-		// 新建传输图片的消息
-		ImageMessage imageMessage(image);
-		// 发送图片消息
-		launchedManager->sendMessage(imageMessage);
+		//// 新建图片
+		//ArrayImage* image = new ArrayImage("E:/temp/car.jpeg");
+		//// 新建传输图片的消息
+		//ImageMessage imageMessage(image, new ImageFuncEndOperation(
+		//	[this](ImageSolver* image, uint32_t idPackage) {
+		//		// 请求目标根据图片生成mesh
+		//		HunyuanMeshGenMessage meshGenMessage(idPackage);
+		//		this->launchedManager->sendMessage(meshGenMessage);
+		//}));
+		//// 发送图片消息
+		//launchedManager->sendMessage(imageMessage);
+
+		// 发送mesh测试的消息
+		MeshTestMessage testMessage;
+		launchedManager->sendMessage(testMessage);
 	}
 }
 
@@ -180,9 +194,16 @@ void ASocketTest::launchMessageManager()
 	auto manager = new MessageManager(commPtr);
 	// 给manager里面注册信息
 	manager->registerMessage(new HelloMessage());
-	manager->registerMessage(new ImageMessage(nullptr));
+	manager->registerMessage(new ImageMessage(nullptr, nullptr));
 	manager->registerMessage(new ImageReceiveMessage());
 	manager->registerMessage(new ImageEndMessage(0));
+	manager->registerMessage(new ImageRowData(nullptr, 0, 0, 0));
+	manager->registerMessage(new HunyuanMeshGenMessage(0));
+	manager->registerMessage(new MeshMessage());
+	manager->registerMessage(new VertexArrayBack());
+	manager->registerMessage(new VertexFinishMessage());
+	manager->registerMessage(new RequestMeshVertices(0,0));
+	manager->registerMessage(new MeshTestMessage());
 	// 新建一个主循环的执行器
 	MessageRunner* runner = new MessageRunner(manager);
 	// 开始执行线程

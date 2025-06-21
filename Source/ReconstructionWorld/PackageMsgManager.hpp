@@ -19,12 +19,22 @@ public:
 
 	// 目前已经注册过的所有分包信息
 	std::unordered_map<uint32_t, PackageInfo*> infoMap;
+	// 远端的package map
+	std::unordered_map<uint32_t, PackageInfo*> remotePackage;
 
 	// 注册分包任务
 	uint32_t registerPackageTask(PackageInfo* pkgInfo) {
 		infoMap[nextPackageId] = pkgInfo;
 		++nextPackageId;
 		return nextPackageId - 1;
+	}
+
+	// 注册远端的package
+	void registerRemotePackage(uint32_t idPackage, PackageInfo* pkgInfo) {
+		if (remotePackage.count(idPackage)) {
+			throw std::runtime_error(std::to_string(idPackage) + "remote exist");
+		}
+		remotePackage[idPackage] = pkgInfo;
 	}
 
 	// 删除分包任务
@@ -41,5 +51,13 @@ public:
 			throw std::runtime_error("Cannot find infoId: " + std::to_string(infoId));
 		}
 		return infoMap.at(infoId);
+	}
+
+	// 获取远端的数据包
+	PackageInfo* getRemotePackage(uint32_t idPackage) {
+		if (remotePackage.count(idPackage) == 0) {
+			throw std::runtime_error("Cannot find remote package: " + std::to_string(idPackage));
+		}
+		return remotePackage.at(idPackage);
 	}
 };
