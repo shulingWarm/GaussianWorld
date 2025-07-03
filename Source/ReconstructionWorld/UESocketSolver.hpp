@@ -71,10 +71,14 @@ public:
         char* data,
         uint32_t maxDataSize)
     {
-        // 读取数据
-        int32 readBytes;
-        socket->Recv((uint8*)data, maxDataSize, readBytes);
-        return readBytes;
+        uint32 totalRead = 0;
+        while (totalRead < maxDataSize) {
+            // 读取数据
+            int32 readBytes;
+            socket->Recv((uint8*)(data + totalRead), maxDataSize - totalRead, readBytes);
+            totalRead += readBytes;
+        }
+        return totalRead;
     }
 
     // 关闭套接字

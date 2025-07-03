@@ -13,15 +13,16 @@ public:
 	// 执行过程
 	virtual uint32 Run() override
 	{
+		uint32 tag;
 		//死循环，不断检查是否有消息
 		while (true) {
-			uint32 tag;
-			manager->streamInterface->receive((char*)&tag, sizeof(uint32));
+			tag = manager->streamInterface->readData<uint32_t>();
 			// 判断tag是否在范围内
 			if (manager->isTagInRange(tag)) {
 				// 执行tag的接收逻辑
 				manager->receiveMessage(tag);
 			}
 		}
+		return 0;
 	}
 };

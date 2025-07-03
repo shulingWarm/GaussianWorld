@@ -4,6 +4,7 @@
 #include"PackageMsgManager.hpp"
 #include<vector>
 #include<unordered_map>
+#include"LogLibrary.h"
 
 class MessageManager : public MessageManagerInterface {
 public:
@@ -54,7 +55,6 @@ public:
 
 	//处理数据头
 	void receiveMessage(uint32_t messageHeader) override {
-		std::cout << "收到消息: " << messageHeader << std::endl;
 		//消息队列需要恢复掉叠加的tag
 		messageHeader -= TAG_RANGE;
 		//检查header是否在合法范围内

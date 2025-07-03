@@ -20,6 +20,9 @@
 #include"RequestMeshVertices.hpp"
 #include"VertexFinishMessage.hpp"
 #include"MeshTestMessage.hpp"
+#include"RequestFaceMessage.hpp"
+#include"FaceArrayBack.hpp"
+#include"FaceFinishMessage.hpp"
 
 #include"ArrayImage.hpp"
 
@@ -166,21 +169,21 @@ void ASocketTest::sendHello()
 {
 	//通过已经启动的manager发送一个信息
 	if (launchedManager != nullptr) {
-		//// 新建图片
-		//ArrayImage* image = new ArrayImage("E:/temp/car.jpeg");
-		//// 新建传输图片的消息
-		//ImageMessage imageMessage(image, new ImageFuncEndOperation(
-		//	[this](ImageSolver* image, uint32_t idPackage) {
-		//		// 请求目标根据图片生成mesh
-		//		HunyuanMeshGenMessage meshGenMessage(idPackage);
-		//		this->launchedManager->sendMessage(meshGenMessage);
-		//}));
-		//// 发送图片消息
-		//launchedManager->sendMessage(imageMessage);
+		// 新建图片
+		ArrayImage* image = new ArrayImage("E:/temp/car.jpeg");
+		// 新建传输图片的消息
+		ImageMessage imageMessage(image, new ImageFuncEndOperation(
+			[this](ImageSolver* image, uint32_t idPackage) {
+				// 请求目标根据图片生成mesh
+				HunyuanMeshGenMessage meshGenMessage(idPackage);
+				this->launchedManager->sendMessage(meshGenMessage);
+		}));
+		// 发送图片消息
+		launchedManager->sendMessage(imageMessage);
 
 		// 发送mesh测试的消息
-		MeshTestMessage testMessage;
-		launchedManager->sendMessage(testMessage);
+		/*MeshTestMessage testMessage;
+		launchedManager->sendMessage(testMessage);*/
 	}
 }
 
@@ -204,6 +207,10 @@ void ASocketTest::launchMessageManager()
 	manager->registerMessage(new VertexFinishMessage());
 	manager->registerMessage(new RequestMeshVertices(0,0));
 	manager->registerMessage(new MeshTestMessage());
+	manager->registerMessage(new RequestFaceMessage(0,0));
+	manager->registerMessage(new FaceArrayBack());
+	manager->registerMessage(new FaceFinishMessage());
+	
 	// 新建一个主循环的执行器
 	MessageRunner* runner = new MessageRunner(manager);
 	// 开始执行线程

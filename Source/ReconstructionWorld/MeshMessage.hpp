@@ -23,8 +23,13 @@ public:
 		uint32_t idImagePackage = stream->readData<uint32_t>();
 		// 读取节点的个数
 		uint32_t verticeNum = stream->readData<uint32_t>();
+		// 读取face的个数
+		uint32_t faceNum = stream->readData<uint32_t>();
+		auto meshSolver = UEMeshSolver::create();
+		meshSolver->setFaceNum(faceNum);
+		meshSolver->setVertexNum(verticeNum);
 		// 新建mesh的package
-		auto meshPackage = new MeshPackage(UEMeshSolver::create(), idImagePackage);
+		auto meshPackage = new MeshPackage(meshSolver, idImagePackage);
 		// 把package注册到包管理器里面
 		stream->getPackageManager()->registerRemotePackage(idMeshPackage, meshPackage);
 		// 回传请求节点信息

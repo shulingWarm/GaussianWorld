@@ -1,5 +1,6 @@
 #pragma once
 #include"AbstractMessage.hpp"
+#include"RequestFaceMessage.hpp"
 
 class VertexFinishMessage : public AbstractMessage {
 public:
@@ -16,5 +17,8 @@ public:
 	virtual void receive(StreamInterface* stream, MessageManagerInterface* messageManager) override {
 		// 接收id package
 		uint32_t idPackage = stream->readData<uint32_t>();
+		// 发送请求face的消息
+		RequestFaceMessage message(idPackage, 0);
+		messageManager->sendMessage(message);
 	}
 };
