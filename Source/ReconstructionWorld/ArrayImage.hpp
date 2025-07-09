@@ -20,6 +20,13 @@ public:
 		this->height = height;
 	}
 
+	ArrayImage(uint32_t width, uint32_t height) {
+		imgData = new ArrayType();
+		imgData->SetNum(width * height * 4);
+		this->width = width;
+		this->height = height;
+	}
+
 	//从文件读取图片的函数
 	ArrayImage(FString filePath) {
 		//用于存储读取数据的数组
@@ -60,5 +67,34 @@ public:
 	virtual uint8_t* getRowData(uint32_t idRow) override {
 		// 计算偏移量
 		return &(imgData->operator[](idRow* this->width * 4));
+	}
+
+	// 设置图片的指定区域的像素
+	virtual void setPixels(uint32_t beginId, uint32_t pixelNum,
+		uint32_t channelNum, uint8_t* pixelData) {
+		// 确认一下是否在范围内
+		if (beginId + pixelNum > getWidth() * getHeight()) {
+			throw std::runtime_error("Set Pixel out of range");
+		}
+		// 目前只支持3通道和4通道的版本
+		if (channelNum != 3 && channelNum != 4) {
+			throw std::runtime_error("Invalid channel num");
+		}
+		// 遍历传进来的每个像素
+		for (uint32_t idPixel = 0; idPixel < pixelNum; ++idPixel) {
+			// 当前位置的像素数据
+			auto currPixel = pixelData + idPixel * channelNum;
+			auto imgPixelHead = &(imgData->operator[]((beginId + idPixel) * 4));
+			for (uint32_t idChn = 0; idChn < channelNum; ++idChn) {
+				imgPixelHead[idChn] = currPixel[idChn];
+			}
+			if (channelNum == 3) {
+				imgPixelHead[3] = 255;
+			}
+		}
+	}
+
+	virtual ~ArrayImage() {
+		delete this->imgData;
 	}
 };

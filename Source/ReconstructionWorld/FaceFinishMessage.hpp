@@ -16,7 +16,7 @@ public:
 	virtual void receive(StreamInterface* stream, MessageManagerInterface* messageManager) {
 		// 接收package id
 		uint32_t idPackage = stream->readData<uint32_t>();
-		// 这后续就需要去把mesh放进场景里了
-		
+		//  请求发送uv
+
 	}
 };

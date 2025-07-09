@@ -60,4 +60,14 @@ public:
 		}
 		return remotePackage.at(idPackage);
 	}
+
+	// 删除远端的数据包
+	void deleteRemotePackage(uint32_t idPackage) {
+		if (remotePackage.count(idPackage) == 0) {
+			throw std::runtime_error("Cannot find remote package: " + std::to_string(idPackage));;
+		}
+		auto package = remotePackage.at(idPackage);
+		delete package;
+		remotePackage.erase(idPackage);
+	}
 };

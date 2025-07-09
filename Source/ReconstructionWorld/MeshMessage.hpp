@@ -25,9 +25,14 @@ public:
 		uint32_t verticeNum = stream->readData<uint32_t>();
 		// 读取face的个数
 		uint32_t faceNum = stream->readData<uint32_t>();
+		// texture的size
+		uint32_t textureWidth = stream->readData<uint32_t>();
+		uint32_t textureHeight = stream->readData<uint32_t>();
 		auto meshSolver = UEMeshSolver::create();
 		meshSolver->setFaceNum(faceNum);
 		meshSolver->setVertexNum(verticeNum);
+		// 设置texture的大小
+		meshSolver->setTextureShape(textureWidth, textureHeight);
 		// 新建mesh的package
 		auto meshPackage = new MeshPackage(meshSolver, idImagePackage);
 		// 把package注册到包管理器里面

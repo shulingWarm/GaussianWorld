@@ -23,6 +23,14 @@
 #include"RequestFaceMessage.hpp"
 #include"FaceArrayBack.hpp"
 #include"FaceFinishMessage.hpp"
+#include"LongArrayMessage.hpp"
+#include"LongArrayBackMessage.hpp"
+#include"RequestLongArrayMessage.hpp"
+#include"UvVertexFinishMessage.hpp"
+#include"RequestTextureMessage.hpp"
+#include"TextureFinishMessage.hpp"
+#include"RequestFaceUvMessage.hpp"
+#include"FaceUvFinishMessage.hpp"
 
 #include"ArrayImage.hpp"
 
@@ -210,6 +218,15 @@ void ASocketTest::launchMessageManager()
 	manager->registerMessage(new RequestFaceMessage(0,0));
 	manager->registerMessage(new FaceArrayBack());
 	manager->registerMessage(new FaceFinishMessage());
+	manager->registerMessage(new LongArrayMessage());
+	manager->registerMessage(new RequestLongArrayMessage(0,0));
+	manager->registerMessage(new LongArrayBackMessage());
+	manager->registerMessage(new UvVertexFinishMessage());
+	manager->registerMessage(new RequestTextureMessage(0));
+	manager->registerMessage(new TextureFinishMessage());
+	manager->registerMessage(new RequestFaceUvMessage(0));
+	manager->registerMessage(new FaceUvFinishMessage());
+	
 	
 	// 新建一个主循环的执行器
 	MessageRunner* runner = new MessageRunner(manager);

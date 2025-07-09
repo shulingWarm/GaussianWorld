@@ -11,4 +11,12 @@ public:
 
 	//获取某一行的数据指针
 	virtual uint8_t* getRowData(uint32_t idRow) = 0;
+
+	// 设置图片的指定区域的像素
+	virtual void setPixels(uint32_t beginId, uint32_t pixelNum, 
+		uint32_t channelNum, uint8_t* pixelData) = 0;
+
+	virtual ~ImageSolver() {
+
+	}
 };
