@@ -235,3 +235,14 @@ void ASocketTest::launchMessageManager()
 	this->launchedManager = manager;
 }
 
+void ASocketTest::loadMeshFromFile(UDynamicMesh* mesh)
+{
+	// 加载的mesh文件
+	std::string meshFile = "E:/temp/ue_mesh.bin";
+	// 初始化一个mesh
+	UEMeshSolver* ueMesh = UEMeshSolver::create();
+	ueMesh->loadFromFile(meshFile);
+	// 调用generator生成mesh
+	ueMesh->buildUeMesh(mesh);
+}
+

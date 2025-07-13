@@ -1,5 +1,7 @@
 #pragma once
 #include<iostream>
+#include<string>
+#include "Generators/MeshShapeGenerator.h"
 
 // mesh的抽象接口
 class MeshSolver {
@@ -37,4 +39,10 @@ public:
 	// 获取texture的大小
 	// 传入0的时候获取width，传入1的时候获取height
 	virtual uint32_t getTextureSize(uint32_t dim) = 0;
+
+	// 将mesh保存到指定路径 
+	virtual void saveMesh(std::string path) = 0;
+
+	// 构建ue mesh
+	virtual void buildUeMesh(UDynamicMesh* mesh) = 0;
 };

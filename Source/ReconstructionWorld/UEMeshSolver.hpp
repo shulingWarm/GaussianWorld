@@ -2,8 +2,10 @@
 #include"MeshSolver.hpp"
 #include"ImageSolver.hpp"
 #include"ArrayImage.hpp"
+#include<fstream>
 #include "CoreMinimal.h"
 #include "Generators/MeshShapeGenerator.h"
+#include"MeshLibrary.h"
 
 class UEMeshSolver : public MeshSolver, public UE::Geometry::FMeshShapeGenerator {
 public:
@@ -44,12 +46,12 @@ public:
 
 	// 设置节点个数
 	virtual void setVertexNum(uint32_t vertexNum) override {
-		// 扩展vertex的个数
-		ExtendBufferSizes(vertexNum, 0, 0, 0);
+		// 扩展vertex的个数 假设每个节点只有一个uv
+		SetBufferSizes(vertexNum, 0, vertexNum, 0);
 	}
 
 	virtual void setFaceNum(uint32_t faceNum) override {
-		ExtendBufferSizes(0, faceNum, faceNum, faceNum);
+		SetBufferSizes(0, faceNum, 0, 0);
 	}
 
 	virtual void setTextureShape(uint32_t width, uint32_t height) {
@@ -67,7 +69,7 @@ public:
 		for (uint32_t idVertex = 0; idVertex < vertexNum; ++idVertex) {
 			// 当前坐标的起始点
 			float* currVertex = vertexData + idVertex * 3;
-			SetVertex(idVertex + beginId, { currVertex[0], currVertex[1], currVertex[2] });
+			SetVertex(idVertex + beginId, { currVertex[0]*100, -currVertex[2]*100, -currVertex[1]*100 });
 		}
 	}
 
@@ -107,5 +109,81 @@ public:
 
 	virtual FMeshShapeGenerator& Generate() {
 		return *this;
+	}
+
+	virtual void saveMesh(std::string path) override {
+		std::fstream fileHandle(path, std::ios::out | std::ios::binary);
+		if (!fileHandle.is_open()) {
+			throw std::runtime_error("Cannot open file");
+		}
+		// 记录节点的个数
+		uint32_t verticeNum = Vertices.Num();
+		uint32_t faceNum = Triangles.Num();
+		// 节点uv的个数
+		uint32_t vertexUvNum = UVs.Num();
+		uint32_t faceUvNum = TriangleUVs.Num();
+		// 纹理的宽高
+		uint32_t textureShape[] = {
+			getTextureSize(0), getTextureSize(1)
+		};
+		fileHandle.write((char*)&verticeNum, sizeof(uint32_t));
+		fileHandle.write((char*)&faceNum, sizeof(uint32_t));
+		fileHandle.write((char*)&vertexUvNum, sizeof(uint32_t));
+		fileHandle.write((char*)&faceUvNum, sizeof(uint32_t));
+		fileHandle.write((char*)textureShape, sizeof(uint32_t) * 2);
+		// 记录vertex 数据
+		fileHandle.write((char*)Vertices.GetData(), sizeof(FVector3d) * verticeNum);
+		fileHandle.write((char*)Triangles.GetData(), sizeof(UE::Geometry::FIndex3i) * faceNum);
+		fileHandle.write((char*)UVs.GetData(), sizeof(FVector2f) * vertexUvNum);
+		fileHandle.write((char*)TriangleUVs.GetData(), sizeof(UE::Geometry::FIndex3i) * faceUvNum);
+		// 记录纹理数据
+		fileHandle.write((char*)texture->getRowData(0),
+			sizeof(uint8_t) * texture->getWidth() * texture->getHeight() * 4);
+		fileHandle.close();
+	}
+
+	// 从文件中加载数据
+	void loadFromFile(std::string filePath) {
+		std::fstream fileHandle;
+		fileHandle.open(filePath, std::ios::in | std::ios::binary);
+		if (!fileHandle.is_open()) {
+			throw std::runtime_error("Cannot load file");
+		}
+		// 读取节点个数 依次对应vertex face vertex_uv face_uv
+		uint32_t meshProperty[4];
+		fileHandle.read((char*)meshProperty, sizeof(uint32_t) * 4);
+		// 读取texture的数量
+		uint32_t textureSize[2];
+		fileHandle.read((char*)textureSize, sizeof(uint32_t) * 2);
+		// 设置节点个数
+		setVertexNum(meshProperty[0]);
+		// 设置face个数 这里暂时假设了face里面uv的个数都是相同的
+		setFaceNum(meshProperty[1]);
+		// 设置texture
+		setTextureShape(textureSize[0], textureSize[1]);
+		// 读取所有的vertice数据
+		fileHandle.read((char*)Vertices.GetData(), sizeof(FVector3d) * meshProperty[0]);
+		fileHandle.read((char*)Triangles.GetData(), sizeof(UE::Geometry::FIndex3i) * meshProperty[1]);
+		fileHandle.read((char*)UVs.GetData(), sizeof(FVector2f) * meshProperty[2]);
+		fileHandle.read((char*)TriangleUVs.GetData(), sizeof(UE::Geometry::FIndex3i) * meshProperty[3]);
+		// 记录纹理数据
+		fileHandle.read((char*)texture->getRowData(0),
+			sizeof(uint8_t) * texture->getWidth() * texture->getHeight() * 4);
+		fileHandle.close();
+	}
+
+	// 构建ue mesh
+	virtual void buildUeMesh(UDynamicMesh* mesh) override {
+		// 在这里用hard coding的方式做缩放
+		for (int idVertex = 0; idVertex < Vertices.Num(); ++idVertex) {
+			auto& vertex = Vertices[idVertex];
+			// 这已经是y,z坐标取过反的版本了
+			// 把z坐标正过来
+			vertex[2] = -vertex[2];
+			// 给x坐标也取个反
+			vertex[0] = -vertex[0];
+		}
+		// 添加mesh原语
+		MeshLibrary::addMeshPrimitive(mesh, this, FTransform(), FVector3d::Zero());
 	}
 };

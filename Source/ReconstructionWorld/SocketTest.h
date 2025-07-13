@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "GeometryActors/GeneratedDynamicMeshActor.h"
 #include "MessageManager.hpp"
 #include "SocketTest.generated.h"
 
@@ -50,4 +51,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void launchMessageManager();
+
+	// 用于测试从文件中读取mesh的接口
+	UFUNCTION(BlueprintCallable)
+	void loadMeshFromFile(UDynamicMesh* mesh);
 };

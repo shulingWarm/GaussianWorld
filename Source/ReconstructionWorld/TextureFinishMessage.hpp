@@ -31,5 +31,7 @@ public:
 		uint32_t pixelNum = mesh->getTextureSize(0) * mesh->getTextureSize(1);
 		// 通过mesh设置texture数据
 		mesh->setTexturePixelSequence(0, pixelNum, channel, textureData);
+		// 临时保存texture数据
+		mesh->saveMesh("E:/temp/ue_mesh.bin");
 	}
 };
