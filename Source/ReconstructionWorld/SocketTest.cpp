@@ -29,8 +29,10 @@
 #include"UvVertexFinishMessage.hpp"
 #include"RequestTextureMessage.hpp"
 #include"TextureFinishMessage.hpp"
+#include"ImagePackageInfo.hpp"
 #include"RequestFaceUvMessage.hpp"
 #include"FaceUvFinishMessage.hpp"
+#include"MeshFinishFunctor.hpp"
 
 #include"ArrayImage.hpp"
 
@@ -58,6 +60,25 @@ void ASocketTest::BeginPlay()
 void ASocketTest::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
+
+UTexture2D* ASocketTest::buildFromMeshQueue(UDynamicMesh* mesh)
+{
+	UE_LOG(LogTemp, Warning, TEXT("buildFromMeshQueue"));
+	MeshSolver* ueMesh;
+	if (this->meshTaskQueue.Dequeue(ueMesh)) {
+		// 调用generator生成mesh
+		ueMesh->buildUeMesh(mesh);
+		// 从mesh solver里面获取ue texture
+		UTexture2D* texture = ueMesh->makeUeTexture();
+		return texture;
+	}
+	return nullptr;
+}
+
+bool ASocketTest::judgeHaveMeshToLoad()
+{
+	return !this->meshTaskQueue.IsEmpty();
 }
 
 void ASocketTest::testSocket()
@@ -177,13 +198,21 @@ void ASocketTest::sendHello()
 {
 	//通过已经启动的manager发送一个信息
 	if (launchedManager != nullptr) {
+
+		// 完成mesh生成后，将mesh添加到本地队列里面
+		auto meshFinishFunctor = [&](MeshSolver* mesh, uint32_t idPackage) {
+			// 将mesh添加到本地队列里面
+			meshTaskQueue.Enqueue(mesh);
+		};
+
 		// 新建图片
 		ArrayImage* image = new ArrayImage("E:/temp/car.jpeg");
 		// 新建传输图片的消息
 		ImageMessage imageMessage(image, new ImageFuncEndOperation(
-			[this](ImageSolver* image, uint32_t idPackage) {
+			[this, meshFinishFunctor](ImageSolver* image, uint32_t idPackage) {
 				// 请求目标根据图片生成mesh
-				HunyuanMeshGenMessage meshGenMessage(idPackage);
+				HunyuanMeshGenMessage meshGenMessage(idPackage,
+					new MeshFinishLambdaFunctor(meshFinishFunctor));
 				this->launchedManager->sendMessage(meshGenMessage);
 		}));
 		// 发送图片消息
@@ -195,8 +224,42 @@ void ASocketTest::sendHello()
 	}
 }
 
+void ASocketTest::GenerateMeshFromImage(FString imgPath)
+{
+	// 完成mesh生成后，将mesh添加到本地队列里面
+	auto meshFinishFunctor = [&](MeshSolver* mesh, uint32_t idPackage) {
+		UE_LOG(LogTemp, Warning, TEXT("Finish mesh functor"));
+		// 将mesh添加到本地队列里面
+		meshTaskQueue.Enqueue(mesh);
+	};
+
+	//通过已经启动的manager发送一个信息
+	if (launchedManager != nullptr) {
+		// 新建图片
+		ArrayImage* image = new ArrayImage(imgPath);
+		// 新建传输图片的消息
+		ImageMessage imageMessage(image, new ImageFuncEndOperation(
+			[this, meshFinishFunctor](ImageSolver* image, uint32_t idPackage) {
+				// 请求目标根据图片生成mesh
+				HunyuanMeshGenMessage meshGenMessage(idPackage,
+					new MeshFinishLambdaFunctor(meshFinishFunctor));
+				this->launchedManager->sendMessage(meshGenMessage);
+			}));
+		// 发送图片消息
+		launchedManager->sendMessage(imageMessage);
+
+		// 发送mesh测试的消息
+		/*MeshTestMessage testMessage;
+		launchedManager->sendMessage(testMessage);*/
+	}
+}
+
 void ASocketTest::launchMessageManager()
 {
+	// 如果manager已经启动，就直接退出
+	if (this->launchedManager != nullptr) {
+		return;
+	}
 	//新建一个通信接口
 	auto commPtr = new AdvCommunication();
 	//与服务端建立连接
@@ -209,7 +272,7 @@ void ASocketTest::launchMessageManager()
 	manager->registerMessage(new ImageReceiveMessage());
 	manager->registerMessage(new ImageEndMessage(0));
 	manager->registerMessage(new ImageRowData(nullptr, 0, 0, 0));
-	manager->registerMessage(new HunyuanMeshGenMessage(0));
+	manager->registerMessage(new HunyuanMeshGenMessage(0, nullptr));
 	manager->registerMessage(new MeshMessage());
 	manager->registerMessage(new VertexArrayBack());
 	manager->registerMessage(new VertexFinishMessage());
@@ -235,7 +298,7 @@ void ASocketTest::launchMessageManager()
 	this->launchedManager = manager;
 }
 
-void ASocketTest::loadMeshFromFile(UDynamicMesh* mesh)
+UTexture2D* ASocketTest::loadMeshFromFile(UDynamicMesh* mesh)
 {
 	// 加载的mesh文件
 	std::string meshFile = "E:/temp/ue_mesh.bin";
@@ -244,5 +307,8 @@ void ASocketTest::loadMeshFromFile(UDynamicMesh* mesh)
 	ueMesh->loadFromFile(meshFile);
 	// 调用generator生成mesh
 	ueMesh->buildUeMesh(mesh);
+	// 从mesh solver里面获取ue texture
+	UTexture2D* texture = ueMesh->makeUeTexture();
+	return texture;
 }
 

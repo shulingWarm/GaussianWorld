@@ -2,10 +2,12 @@
 #include"MeshSolver.hpp"
 #include"ImageSolver.hpp"
 #include"ArrayImage.hpp"
+#include"TextureConfigLibrary.h"
 #include<fstream>
 #include "CoreMinimal.h"
 #include "Generators/MeshShapeGenerator.h"
 #include"MeshLibrary.h"
+#include"LogLibrary.h"
 
 class UEMeshSolver : public MeshSolver, public UE::Geometry::FMeshShapeGenerator {
 public:
@@ -97,6 +99,7 @@ public:
 		for (uint32_t idFace = 0; idFace < faceUvNum; ++idFace) {
 			auto currFaceData = faceUvData + 3 * idFace;
 			SetTriangleUVs(idFace, { currFaceData[0], currFaceData[1], currFaceData[2] });
+			SetTrianglePolygon(idFace, idFace);
 		}
 	}
 
@@ -169,11 +172,39 @@ public:
 		// 记录纹理数据
 		fileHandle.read((char*)texture->getRowData(0),
 			sizeof(uint8_t) * texture->getWidth() * texture->getHeight() * 4);
+		// 把uv的parent vertex依次设置
+		for (int idVertex = 0; idVertex < UVParentVertex.Num(); ++idVertex) {
+			UVParentVertex[idVertex] = idVertex;
+		}
 		fileHandle.close();
+	}
+
+	// 打印mesh的uv信息
+	void printMeshUv() {
+		// 获取log的数据流
+		auto& stream = LogLibrary::getInstance()->output();
+		// 读取前100个vertex uv
+		for (uint32_t idVertex = 2000; idVertex < 2100; ++idVertex) {
+			// 获取当前位置的vertex uv
+			auto& vertexUv = UVs[idVertex];
+			// 打印vertex信息
+			stream << vertexUv.X << " " << vertexUv.Y << std::endl;
+		}
+
+		// 打印100个face uv
+		for (uint32_t idFace = 0; idFace < 100; ++idFace) {
+			auto& faceUv = TriangleUVs[idFace];
+			stream << faceUv[0] << " " << faceUv[1] << " " << faceUv[2] << std::endl;
+		}
 	}
 
 	// 构建ue mesh
 	virtual void buildUeMesh(UDynamicMesh* mesh) override {
+		// 读取关注的face
+		std::fstream fileHandle("E:/temp/focus.txt", std::ios::in);
+		int focusMin, focusMax;
+		fileHandle >> focusMin >> focusMax;
+		auto& stream = LogLibrary::getInstance()->output();
 		// 在这里用hard coding的方式做缩放
 		for (int idVertex = 0; idVertex < Vertices.Num(); ++idVertex) {
 			auto& vertex = Vertices[idVertex];
@@ -183,7 +214,71 @@ public:
 			// 给x坐标也取个反
 			vertex[0] = -vertex[0];
 		}
+		uint32_t textureWidth = getTextureSize(0);
+		uint32_t textureHeight = getTextureSize(1);
+		// 把所有的vertex uv处理一下
+		for (int idUv = 0; idUv < UVs.Num(); ++idUv) {
+			auto& currUv = UVs[idUv];
+			currUv.Y = textureHeight - currUv.Y;
+		}
+		//stream << "Face and focus: " << TriangleUVs.Num() << std::endl;
+		//// 纹理的宽高
+		
+		//// 除了关注的face，其他都跳过
+		//for (int idFace = 0; idFace < TriangleUVs.Num(); ++idFace) {
+		//	auto& faceUv = TriangleUVs[idFace];
+		//	// 判断是不是关注的face
+		//	if (idFace >= focusMin && idFace <= focusMax) {
+		//		// 处理 face
+		//		stream << "face id: "<< idFace << std::endl;
+		//		stream << faceUv[0] << " " << faceUv[1] << " " << faceUv[2] << std::endl;
+		//		for (int idDim = 0; idDim < 3; ++idDim) {
+		//			auto& vertexUv = UVs[faceUv[idDim]];
+		//			stream << "(" << vertexUv[0]*textureWidth << "," << vertexUv[1]*textureHeight << ") ";
+		//		}
+		//		stream << std::endl;
+		//	}
+		//	else {
+		//		faceUv[0] = 0;
+		//		faceUv[1] = 1;
+		//		faceUv[2] = 2;
+		//	}
+		//}
 		// 添加mesh原语
 		MeshLibrary::addMeshPrimitive(mesh, this, FTransform(), FVector3d::Zero());
+	}
+
+	// 从里面获取ue texture
+	virtual UTexture2D* makeUeTexture() override {
+		// texture的宽高
+		uint32_t textureWidth = this->getTextureSize(0);
+		uint32_t textureHeight = this->getTextureSize(1);
+		//生成一个空的texture
+		UTexture2D* retTexture = UTexture2D::CreateTransient(
+			textureWidth, textureHeight, PF_B8G8R8A8
+		);
+		// 完成对纹理的基本配置
+		TextureConfigLibrary::baseConfigTexture(*retTexture);
+		//获取texture数据
+		auto textureData = TextureConfigLibrary::getTextureData<uint8>(*retTexture);
+		auto oriTextureData = this->texture->getRowData(0);
+		// 把本地里面的texture数据复制进去
+		// 先假设这里面是BGRA，如果后续数据位置不对的话再调整
+		uint32_t pixelNum = textureWidth * textureHeight;
+		for (uint32_t idPixel = 0; idPixel < pixelNum; ++idPixel) {
+			// 当前像素的数据
+			auto srcData = oriTextureData + idPixel * 4;
+			auto dstData = textureData + idPixel * 4;
+			// 把rgb颜色翻转成bgr颜色
+			dstData[0] = srcData[2];
+			dstData[1] = srcData[1];
+			dstData[2] = srcData[0];
+			dstData[3] = srcData[3];
+		}
+		//解锁texture数据
+		TextureConfigLibrary::unlockTexture(*retTexture);
+		//做texture数据的收尾工作
+		TextureConfigLibrary::textureFinalUpdate(*retTexture);
+		return retTexture;
 	}
 };

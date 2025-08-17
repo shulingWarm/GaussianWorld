@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "GeometryActors/GeneratedDynamicMeshActor.h"
 #include "MessageManager.hpp"
+#include"Containers/CircularQueue.h"
+#include"MeshSolver.hpp"
 #include "SocketTest.generated.h"
 
 UCLASS()
@@ -17,6 +19,9 @@ public:
 	FSocket* socket;
 	//目前已经注册过的message manager
 	MessageManager* launchedManager = nullptr;
+	// 需要被添加的mesh solver
+	// 图生3D处理完成的mesh会被放进这里面
+	TQueue<MeshSolver*> meshTaskQueue;
 
 	// Sets default values for this actor's properties
 	ASocketTest();
@@ -28,6 +33,13 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	UFUNCTION(BlueprintCallable)
+	UTexture2D* buildFromMeshQueue(UDynamicMesh* mesh);
+
+	// 判断是否有待生成的队列
+	UFUNCTION(BlueprintCallable)
+	bool judgeHaveMeshToLoad();
 
 	UFUNCTION(BlueprintCallable)
 	void testSocket();
@@ -50,9 +62,12 @@ public:
 	void sendHello();
 
 	UFUNCTION(BlueprintCallable)
+	void GenerateMeshFromImage(FString imgPath);
+
+	UFUNCTION(BlueprintCallable)
 	void launchMessageManager();
 
 	// 用于测试从文件中读取mesh的接口
 	UFUNCTION(BlueprintCallable)
-	void loadMeshFromFile(UDynamicMesh* mesh);
+	UTexture2D* loadMeshFromFile(UDynamicMesh* mesh);
 };

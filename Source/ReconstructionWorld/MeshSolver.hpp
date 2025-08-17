@@ -45,4 +45,7 @@ public:
 
 	// 构建ue mesh
 	virtual void buildUeMesh(UDynamicMesh* mesh) = 0;
+
+	// 从里面获取ue texture
+	virtual UTexture2D* makeUeTexture() = 0;
 };
