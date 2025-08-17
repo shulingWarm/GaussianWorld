@@ -71,7 +71,7 @@ public:
 		for (uint32_t idVertex = 0; idVertex < vertexNum; ++idVertex) {
 			// 当前坐标的起始点
 			float* currVertex = vertexData + idVertex * 3;
-			SetVertex(idVertex + beginId, { currVertex[0]*100, -currVertex[2]*100, -currVertex[1]*100 });
+			SetVertex(idVertex + beginId, { -currVertex[0]*100, -currVertex[2]*100, currVertex[1]*100 });
 		}
 	}
 
@@ -86,12 +86,15 @@ public:
 	}
 
 	virtual void setVertexUvSequence(uint32_t beginId, uint32_t vertexUvNum, float* vertexUvData) override {
+		// texture的高度
+		uint32_t textureHeight = getTextureSize(1);
 		// 遍历所有的vertex uv
 		for (uint32_t idVertex = 0; idVertex < vertexUvNum; ++idVertex) {
 			// 当前的vertex头指针
 			auto currVertexData = vertexUvData + idVertex * 2;
 			// 写入当前的vertex uv
-			SetUV(idVertex + beginId, { currVertexData[0], currVertexData[1] }, idVertex + beginId);
+			SetUV(idVertex + beginId, { currVertexData[0], 
+				textureHeight - currVertexData[1] }, idVertex + beginId);
 		}
 	}
 
@@ -200,50 +203,6 @@ public:
 
 	// 构建ue mesh
 	virtual void buildUeMesh(UDynamicMesh* mesh) override {
-		// 读取关注的face
-		std::fstream fileHandle("E:/temp/focus.txt", std::ios::in);
-		int focusMin, focusMax;
-		fileHandle >> focusMin >> focusMax;
-		auto& stream = LogLibrary::getInstance()->output();
-		// 在这里用hard coding的方式做缩放
-		for (int idVertex = 0; idVertex < Vertices.Num(); ++idVertex) {
-			auto& vertex = Vertices[idVertex];
-			// 这已经是y,z坐标取过反的版本了
-			// 把z坐标正过来
-			vertex[2] = -vertex[2];
-			// 给x坐标也取个反
-			vertex[0] = -vertex[0];
-		}
-		uint32_t textureWidth = getTextureSize(0);
-		uint32_t textureHeight = getTextureSize(1);
-		// 把所有的vertex uv处理一下
-		for (int idUv = 0; idUv < UVs.Num(); ++idUv) {
-			auto& currUv = UVs[idUv];
-			currUv.Y = textureHeight - currUv.Y;
-		}
-		//stream << "Face and focus: " << TriangleUVs.Num() << std::endl;
-		//// 纹理的宽高
-		
-		//// 除了关注的face，其他都跳过
-		//for (int idFace = 0; idFace < TriangleUVs.Num(); ++idFace) {
-		//	auto& faceUv = TriangleUVs[idFace];
-		//	// 判断是不是关注的face
-		//	if (idFace >= focusMin && idFace <= focusMax) {
-		//		// 处理 face
-		//		stream << "face id: "<< idFace << std::endl;
-		//		stream << faceUv[0] << " " << faceUv[1] << " " << faceUv[2] << std::endl;
-		//		for (int idDim = 0; idDim < 3; ++idDim) {
-		//			auto& vertexUv = UVs[faceUv[idDim]];
-		//			stream << "(" << vertexUv[0]*textureWidth << "," << vertexUv[1]*textureHeight << ") ";
-		//		}
-		//		stream << std::endl;
-		//	}
-		//	else {
-		//		faceUv[0] = 0;
-		//		faceUv[1] = 1;
-		//		faceUv[2] = 2;
-		//	}
-		//}
 		// 添加mesh原语
 		MeshLibrary::addMeshPrimitive(mesh, this, FTransform(), FVector3d::Zero());
 	}
