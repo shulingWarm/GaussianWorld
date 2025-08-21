@@ -282,8 +282,9 @@ void ASocketTest::launchMessageManager()
 	manager->registerMessage(new FaceArrayBack());
 	manager->registerMessage(new FaceFinishMessage());
 	manager->registerMessage(new LongArrayMessage());
-	manager->registerMessage(new RequestLongArrayMessage(0,0));
-	manager->registerMessage(new LongArrayBackMessage());
+	manager->registerMessage(new RequestLongArrayMessage(
+		LongArrayBackMessage::messageSend));
+	manager->registerMessage(new LongArrayBackMessage(0,0));
 	manager->registerMessage(new UvVertexFinishMessage());
 	manager->registerMessage(new RequestTextureMessage(0));
 	manager->registerMessage(new TextureFinishMessage());

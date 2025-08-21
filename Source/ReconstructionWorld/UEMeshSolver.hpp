@@ -109,7 +109,6 @@ public:
 	// 设置texture的序列
 	virtual void setTexturePixelSequence(uint32_t beginId, uint32_t pixelNum,
 		uint32_t channelNum, uint8_t* pixelData) {
-		// 调用内部texture来设置pixel内容
 		this->texture->setPixels(beginId, pixelNum, channelNum, pixelData);
 	}
 
