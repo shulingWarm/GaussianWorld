@@ -20,6 +20,11 @@ public:
 		LongArrayPackage* package =
 			(LongArrayPackage*)stream->getPackageManager()->getLocalInfo(idPackage_);
 		uint32_t sendLength = package->sendLengthPerRequest;
+		// 剩余未发送的长度
+		uint32_t restLength = package->byteNum - this->requestId_;
+		// 如果发送长度超过了剩余的长度，需要缩减长度
+		if (sendLength > restLength)
+			sendLength = restLength;
 		// 用于发送的数据
 		char* sendData = package->getDataFrom(requestId_);
 		stream->writeData<uint32_t>(idPackage_);

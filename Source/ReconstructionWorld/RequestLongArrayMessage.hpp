@@ -51,6 +51,8 @@ public:
 					requestIdPackage);
 			}
 		}
-		arrayBackFunctor(messageManager, requestIdPackage, requestDataId);
+		else {
+			arrayBackFunctor(messageManager, requestIdPackage, requestDataId);
+		}
 	}
 };

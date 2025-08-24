@@ -19,3 +19,12 @@ public:
 		delete image;
 	}
 };
+
+// 只包含图片id的image package，这仅仅是为了方便后续给server发指令
+// 目前来看不需要存任何东西，但这可能会存在内存泄漏
+class IdOnlyImagePackage : public PackageInfo {
+public:
+	IdOnlyImagePackage() {
+
+	}
+};

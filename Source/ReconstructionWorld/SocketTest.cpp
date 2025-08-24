@@ -33,6 +33,7 @@
 #include"RequestFaceUvMessage.hpp"
 #include"FaceUvFinishMessage.hpp"
 #include"MeshFinishFunctor.hpp"
+#include"ImageCommLib.hpp"
 
 #include"ArrayImage.hpp"
 
@@ -227,26 +228,28 @@ void ASocketTest::sendHello()
 void ASocketTest::GenerateMeshFromImage(FString imgPath)
 {
 	// 完成mesh生成后，将mesh添加到本地队列里面
-	auto meshFinishFunctor = [&](MeshSolver* mesh, uint32_t idPackage) {
+	auto meshFinishFunctor = [this](MeshSolver* mesh, uint32_t idPackage) {
 		UE_LOG(LogTemp, Warning, TEXT("Finish mesh functor"));
 		// 将mesh添加到本地队列里面
-		meshTaskQueue.Enqueue(mesh);
+		this->meshTaskQueue.Enqueue(mesh);
 	};
+
+	// 图片发送完成时的执行逻辑
+	auto imgEndOperator = new ImageFuncEndOperation(
+		[this, meshFinishFunctor](ImageSolver* image, uint32_t idPackage) {
+			// 根据图片，发送生成mesh的请求
+			HunyuanMeshGenMessage meshGenMessage(idPackage,
+				new MeshFinishLambdaFunctor(meshFinishFunctor));
+			this->launchedManager->sendMessage(meshGenMessage);
+	});
 
 	//通过已经启动的manager发送一个信息
 	if (launchedManager != nullptr) {
 		// 新建图片
 		ArrayImage* image = new ArrayImage(imgPath);
 		// 新建传输图片的消息
-		ImageMessage imageMessage(image, new ImageFuncEndOperation(
-			[this, meshFinishFunctor](ImageSolver* image, uint32_t idPackage) {
-				// 请求目标根据图片生成mesh
-				HunyuanMeshGenMessage meshGenMessage(idPackage,
-					new MeshFinishLambdaFunctor(meshFinishFunctor));
-				this->launchedManager->sendMessage(meshGenMessage);
-			}));
-		// 发送图片消息
-		launchedManager->sendMessage(imageMessage);
+		sendImage(image, launchedManager->streamInterface,
+			launchedManager, imgEndOperator);
 
 		// 发送mesh测试的消息
 		/*MeshTestMessage testMessage;
@@ -270,7 +273,7 @@ void ASocketTest::launchMessageManager()
 	manager->registerMessage(new HelloMessage());
 	manager->registerMessage(new ImageMessage(nullptr, nullptr));
 	manager->registerMessage(new ImageReceiveMessage());
-	manager->registerMessage(new ImageEndMessage(0));
+	manager->registerMessage(new ImageEndMessage(0,0,0,0));
 	manager->registerMessage(new ImageRowData(nullptr, 0, 0, 0));
 	manager->registerMessage(new HunyuanMeshGenMessage(0, nullptr));
 	manager->registerMessage(new MeshMessage());
