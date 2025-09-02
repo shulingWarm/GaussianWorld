@@ -6,10 +6,10 @@
 class HunyuanMeshGenMessage : public AbstractMessage {
 public:
 	uint32_t idPackage;
-	MeshFinishFunctor* finishFunctor;
+	Ptr<MeshFinishFunctor> finishFunctor;
 
 	HunyuanMeshGenMessage(uint32_t idPackage,
-		MeshFinishFunctor* finishFunctor) : AbstractMessage("HunyuanMeshGenMessage") {
+		Ptr<MeshFinishFunctor> finishFunctor) : AbstractMessage("HunyuanMeshGenMessage") {
 		this->idPackage = idPackage;
 		this->finishFunctor = finishFunctor;
 	}

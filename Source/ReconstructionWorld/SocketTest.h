@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include"Types.hpp"
 #include "GeometryActors/GeneratedDynamicMeshActor.h"
 #include "MessageManager.hpp"
 #include"Containers/CircularQueue.h"
@@ -21,7 +22,7 @@ public:
 	MessageManager* launchedManager = nullptr;
 	// 需要被添加的mesh solver
 	// 图生3D处理完成的mesh会被放进这里面
-	TQueue<MeshSolver*> meshTaskQueue;
+	TQueue<Ptr<MeshSolver>> meshTaskQueue;
 
 	// Sets default values for this actor's properties
 	ASocketTest();

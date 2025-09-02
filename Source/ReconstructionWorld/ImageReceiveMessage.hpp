@@ -25,7 +25,7 @@ public:
 		auto imgPackage = (ImagePackageInfo*)(stream->getPackageManager()->getLocalInfo(packageId));
 		// 请求获取的行id
 		uint32_t idRow = stream->readData<uint32_t>();
-		ImageSolver* image = imgPackage->image;
+		auto image = imgPackage->image;
 		// 判断请求行是否已经到头了
 		if (idRow == image->getHeight()) {
 			// 执行完成发送消息的后续操作

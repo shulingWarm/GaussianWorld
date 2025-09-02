@@ -7,6 +7,7 @@
 #include "CoreMinimal.h"
 #include "Generators/MeshShapeGenerator.h"
 #include"MeshLibrary.h"
+#include"Types.hpp"
 #include"LogLibrary.h"
 
 class UEMeshSolver : public MeshSolver, public UE::Geometry::FMeshShapeGenerator {
@@ -18,8 +19,8 @@ public:
 	//所以这还是要用create
 	//而且这个东西用的可能也不是主线程
 	//到时候新建mesh的时候要特别注意一下
-	static UEMeshSolver* create() {
-		return new UEMeshSolver();
+	static Ptr<UEMeshSolver> create() {
+		return makePtr<UEMeshSolver>();
 	}
 
 	UEMeshSolver() {

@@ -2,6 +2,7 @@
 #include "AbstractMessage.hpp"
 #include "ImageSolver.hpp"
 #include "ImagePackageInfo.hpp"
+#include"Types.hpp"
 #include"ImageEndOperation.hpp"
 
 // 这是图片消息的数据头
@@ -9,13 +10,13 @@
 class ImageMessage : public AbstractMessage{
 public:
 	//消息中管理的信息
-	ImageSolver* image;
+	Ptr<ImageSolver> image;
 	//图片发送完成后的消息
-	ImageEndOperation* imageEndOperation;
+	Ptr<ImageEndOperation> imageEndOperation;
 
 	//工作的时候需要传入一个图片信息
-	ImageMessage(ImageSolver* image,
-		ImageEndOperation* imageEndOperation //图片发送完成后的operation
+	ImageMessage(Ptr<ImageSolver> image,
+		Ptr<ImageEndOperation> imageEndOperation //图片发送完成后的operation
 	) : AbstractMessage("ImageMessage") {
 		this->image = image;
 		// 记录图片发送完成后的消息

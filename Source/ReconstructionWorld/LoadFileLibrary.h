@@ -23,4 +23,7 @@ class RECONSTRUCTIONWORLD_API ULoadFileLibrary : public UBlueprintFunctionLibrar
 	UFUNCTION(BlueprintCallable)
 	static FString getSpecificFile(FString extension);
 
+	// 获取文件夹里面所有的文件
+	static void GetFilesInDirectory(const FString& Directory, TArray<FString>& FileNames);
+
 };
