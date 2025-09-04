@@ -12,12 +12,12 @@
 class LongArrayEndForImage : public LongArrayFinishFunctor {
 public:
 	Ptr<ImageSolver> image;
-	MessageManager* messageManager;
-	ImageEndOperation* imgEndOperation;
+	MessageManagerInterface* messageManager;
+	Ptr<ImageEndOperation> imgEndOperation;
 
 	LongArrayEndForImage(Ptr<ImageSolver> image,
-		MessageManager* messageManager,
-		ImageEndOperation* imgEndOperation
+		MessageManagerInterface* messageManager,
+		Ptr<ImageEndOperation> imgEndOperation
 	) {
 		this->image = image;
 		this->messageManager = messageManager;
@@ -43,11 +43,11 @@ public:
 };
 
 // 将图片发送到远端
-void sendImage(Ptr<ImageSolver> image, StreamInterface* stream,
-	MessageManager* messageManager, ImageEndOperation* imgEndOperation) {
+void sendImage(Ptr<ImageSolver> image,
+	MessageManagerInterface* messageManager, Ptr<ImageEndOperation> imgEndOperation) {
 
 	// LongArray发送完成时的回调
-	auto arrayFinishFunctor = new LongArrayEndForImage(image,
+	auto arrayFinishFunctor = makePtr<LongArrayEndForImage>(image,
 		messageManager, imgEndOperation);
 
 	// 从图片里面取出指针
@@ -60,26 +60,41 @@ void sendImage(Ptr<ImageSolver> image, StreamInterface* stream,
 }
 
 // 针对image的发送完成时的回调
-class ImageListPerEndCallback : public ImageEndOperation {
+class ImageListPerEndCallback : public ImageEndOperation, 
+	public std::enable_shared_from_this<ImageListPerEndCallback> {
 public:
 	Ptr<ImageList> imgList;
 	Ptr<SentPerImgFuncotr> perImgFunctor;
-	MessageManager* msgManager;
+	// 所有图片发送完成时的回调函数
+	Ptr<ImgListEndFunctor> imgListEndOp;
+	MessageManagerInterface* msgManager;
+	PackageMsgManager* pkgManager;
 	// 目前已经发送完成的图片数
 	uint32_t sentImgNum = 0;
 
 	ImageListPerEndCallback(Ptr<ImageList> imgList, 
 		Ptr<SentPerImgFuncotr> perImgFunctor,
-		MessageManager* msgManager
+		Ptr<ImgListEndFunctor> imgListEndOp,
+		MessageManagerInterface* msgManager,
+		PackageMsgManager* pkgManager
 	) {
 		this->imgList = imgList;
 		this->perImgFunctor = perImgFunctor;
+		this->imgListEndOp = imgListEndOp;
 		this->msgManager = msgManager;
+		this->pkgManager = pkgManager;
 		sentImgNum = 0;
 	}
 
 	// 发送下一个图片
 	void sendNextImg() {
+		// 判断是否已经发送了所有的图片
+		if (this->sentImgNum == imgList->getImageNum()) {
+			++this->sentImgNum;
+			// 调用img list发送结束时的操作
+			this->imgListEndOp->imgEndOp(this->imgList);
+			return;
+		}
 		// 下一个图片的id
 		uint32_t nextId = this->sentImgNum;
 		// 读取下一个image
@@ -87,22 +102,30 @@ public:
 			this->imgList->imagePathList[nextId]
 		));
 		// 发送图片
-
+		sendImage(imgSolver, msgManager, shared_from_this());
 	}
 
 	virtual void imageEndOperation(Ptr<ImageSolver> image, uint32_t idPackage) override {
-
+		// 调用每个图片发送完时的函数
+		perImgFunctor->onPerImgSent(sentImgNum, idPackage);
+		// 释放package
+		this->pkgManager->deletePackagInfo(idPackage);
+		++sentImgNum;
+		// 发送下一步图片
+		sendNextImg();
 	}
 };
 
 // 发送图片的列表
 void sendImgList(Ptr<ImageList> imgList, 
 	Ptr<SentPerImgFuncotr> perImgFunctor,
-	MessageManager* msgManager
+	MessageManagerInterface* msgManager,
+	PackageMsgManager* pkgManager,
+	Ptr<ImgListEndFunctor> imgListEndOp // 图片发送结束时的op
 ) {
 	// 初始化每个图片发送完成时的回调
 	auto imgListPerEnd = makePtr<ImageListPerEndCallback>(imgList, 
-		perImgFunctor, msgManager);
+		perImgFunctor, imgListEndOp, msgManager, pkgManager);
 	// 调用img list发送下一个图片
-
+	imgListPerEnd->sendNextImg();
 }

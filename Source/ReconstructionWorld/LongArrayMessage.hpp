@@ -8,14 +8,14 @@ class LongArrayMessage : public AbstractMessage {
 public:
 	char* dataArray = nullptr;
 	uint32_t byteNum_ = 0;
-	LongArrayFinishFunctor* finishFunctor = nullptr;
+	Ptr<LongArrayFinishFunctor> finishFunctor = nullptr;
 
 	LongArrayMessage() : AbstractMessage("LongArrayMessage") {
 
 	}
 
 	LongArrayMessage(char* dataArray, uint32_t byteNum,
-		LongArrayFinishFunctor* finishFunctor) : AbstractMessage("LongArrayMessage") {
+		Ptr<LongArrayFinishFunctor> finishFunctor) : AbstractMessage("LongArrayMessage") {
 		this->dataArray = dataArray;
 		this->byteNum_ = byteNum;
 		this->finishFunctor = finishFunctor;

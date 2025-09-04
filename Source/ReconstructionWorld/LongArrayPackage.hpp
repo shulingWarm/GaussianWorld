@@ -7,7 +7,7 @@ public:
 	// 完整的数据流
 	char* dataArray;
 	uint32_t byteNum;
-	LongArrayFinishFunctor* finishFunctor = nullptr;
+	Ptr<LongArrayFinishFunctor> finishFunctor = nullptr;
 	// 发送时每次发送的长度
 	uint32_t sendLengthPerRequest = 64 << 10;
 
@@ -17,7 +17,7 @@ public:
 	}
 
 	LongArrayPackage(char* dataArray, uint32_t byteNum,
-		LongArrayFinishFunctor* finishFunctor) {
+		Ptr<LongArrayFinishFunctor> finishFunctor) {
 		this->dataArray = dataArray;
 		this->byteNum = byteNum;
 		this->finishFunctor = finishFunctor;

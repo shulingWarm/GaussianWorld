@@ -3,6 +3,8 @@
 #include"ReconstructionPackage.hpp"
 #include"ReconSingleImgMsg.hpp"
 #include"ImageListPkg.hpp"
+#include"ImageCommLib.hpp"
+#include"ReconBeginMsg.hpp"
 
 class ReconRecvMsg : public AbstractMessage{
 public:
@@ -24,18 +26,21 @@ public:
 		auto tempPackage = (ReconstructionPackage*)pkgManager->getLocalInfo(idPackage);
 		// 构造发送完每个图片时的回调
 		auto sendPerImageCallback = [stream, messageManager, tempPackage](uint32_t idImage, 
-			uint32_t imagePackage, uint32_t parentImgListPackageId) {
+			uint32_t imagePackage) {
 			// 发送单个图片发送完成的消息
 			ReconSingleImgMsg singleImgMsg(idImage, imagePackage);
 			messageManager->sendMessage(singleImgMsg);
 		};
-		// 构造发送图片序列的消息包
-		auto imgListPkg = new ImageListPkg(tempPackage->imageList, 
-			new SentPerImgLambda(sendPerImageCallback), false
-		);
-		// 注册发送图片序列的消息包
-		uint32_t imgListPkgId = pkgManager->registerPackageTask(imgListPkg);
+		// 所有的image发送完成时的回调
+		auto imgListEndFunctor = makePtr<ImgListEndLambda>([idPackage, messageManager] {
+			// 发送所有消息已经完成的通知
+			ReconBeginMsg reconBeginMsg(idPackage);
+			messageManager->sendMessage(reconBeginMsg);
+		});
+		// 发送每个图片之后的回调
+		auto perImgFunctor = makePtr<SentPerImgLambda>(sendPerImageCallback);
 		// 构造发送图片时的消息
-
+		sendImgList(tempPackage->imageList, perImgFunctor, messageManager,
+			pkgManager, imgListEndFunctor);
 	}
 };

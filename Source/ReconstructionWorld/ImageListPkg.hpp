@@ -9,13 +9,13 @@
 class SentPerImgFuncotr {
 public:
 	virtual void onPerImgSent(uint32_t idImage,
-		uint32_t imagePackage, uint32_t parentImgListPackageId) = 0;
+		uint32_t imagePackage) = 0;
 };
 
 // 发送每个图片的回调的lambda版本
 class SentPerImgLambda : public SentPerImgFuncotr  {
 public:
-	using FunctorType = std::function<void(uint32_t, uint32_t, uint32_t)>;
+	using FunctorType = std::function<void(uint32_t, uint32_t)>;
 	FunctorType functor;
 
 	SentPerImgLambda(FunctorType functor) {
@@ -23,8 +23,8 @@ public:
 	}
 
 	virtual void onPerImgSent(uint32_t idImage,
-		uint32_t imagePackage, uint32_t parentImgListPackageId) override {
-		this->functor(idImage, imagePackage, parentImgListPackageId);
+		uint32_t imagePackage) override {
+		this->functor(idImage, imagePackage);
 	}
 };
 

@@ -238,7 +238,7 @@ void ASocketTest::GenerateMeshFromImage(FString imgPath)
 	};
 
 	// 图片发送完成时的执行逻辑
-	auto imgEndOperator = new ImageFuncEndOperation(
+	auto imgEndOperator = makePtr<ImageFuncEndOperation>(
 		[this, meshFinishFunctor](Ptr<ImageSolver> image, uint32_t idPackage) {
 			// 根据图片，发送生成mesh的请求
 			HunyuanMeshGenMessage meshGenMessage(idPackage,
@@ -251,7 +251,7 @@ void ASocketTest::GenerateMeshFromImage(FString imgPath)
 		// 新建图片
 		auto image = makePtr<ArrayImage>(imgPath);
 		// 新建传输图片的消息
-		sendImage(image, launchedManager->streamInterface,
+		sendImage(image,
 			launchedManager, imgEndOperator);
 
 		// 发送mesh测试的消息
