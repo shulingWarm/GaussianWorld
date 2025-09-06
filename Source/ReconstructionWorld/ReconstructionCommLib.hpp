@@ -7,31 +7,9 @@
 #include"ReconstructionPackage.hpp"
 #include"ReconstructionMessage.hpp"
 
-// 收到重建结果时的回调
-class ReconstructionFinishFunctor {
-public:
-	virtual void onReconstructionFinish(GaussianSplatSolver* gaussianSplatPtr) = 0;
-};
-
-// lambda表达式形式的重建结果完成时回调
-class ReconstructionFinishLambda : public ReconstructionFinishFunctor{
-public:
-	// lambda形式的回调
-	typedef std::function<void(GaussianSplatSolver*)> FunctorType;
-	FunctorType functor;
-
-	ReconstructionFinishLambda(FunctorType functor) {
-		this->functor = functor;
-	}
-
-	virtual void onReconstructionFinish(GaussianSplatSolver* gaussianSplatPtr) override {
-		this->functor(gaussianSplatPtr);
-	}
-};
-
 // 执行重建时需要的通信操作
 void requestReconstruction(std::string imageFolder, 
-	ReconstructionFinishFunctor* reconstructionFinishFunctor,
+	Ptr<ReconstructionFinishFunctor> reconstructionFinishFunctor,
 	MessageManager* messageManager,
 	StreamInterface* stream
 ) {
@@ -40,7 +18,8 @@ void requestReconstruction(std::string imageFolder,
 	ImageList* imageList = new ImageList(imageFolder);
 	// 准备重建的package
 	// 它会在重建结果发送完成的消息里面被销毁
-	ReconstructionPackage* reconPackage = new ReconstructionPackage(imageList);
+	ReconstructionPackage* reconPackage = new ReconstructionPackage(imageList,
+		reconstructionFinishFunctor);
 	// 注册这个package
 	uint32_t idPackage = stream->getPackageManager()->registerPackageTask(reconPackage);
 	// 生成重建的message

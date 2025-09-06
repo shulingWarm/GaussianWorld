@@ -7,6 +7,7 @@
 #include<vector>
 #include<fstream>
 #include<sstream>
+#include"GsSplatLib.hpp"
 
 //用于传输重建结果的数据结构
 struct SplatScene
@@ -23,36 +24,6 @@ struct SplatScene
 	float* rotation;
 	//透明度
 	float* opacity;
-};
-
-//ply格式下的属性
-class PlyProperty
-{
-public:
-	std::string type;
-	std::string name;
-};
-
-//ply的文件格式信息
-class PlyHeader
-{
-public:
-	std::string format;
-	//节点的个数
-	int verticeNum = 0;
-	//面片的个数
-	int faceNum = 0;
-	//所有的属性列表，包括节点的和面片的
-	std::vector<PlyProperty> propertyList;
-
-	//打印ply header的信息
-	void print()
-	{
-		auto tempString = FString(format.c_str());
-		UE_LOG(LogTemp, Warning, TEXT("format: %s\n"), *tempString);
-		UE_LOG(LogTemp, Warning, TEXT("vertice num: %d\n"), verticeNum);
-		UE_LOG(LogTemp, Warning, TEXT("face num: %d\n"), faceNum);
-	}
 };
 
 //重建过程的执行器
@@ -142,63 +113,6 @@ void AReconstructionUI::beginReconstruction()
 	FRunnableThread* tempThread = FRunnableThread::Create(tempRunner, TEXT("Reconstruction task"));
 }
 
-//载入点云的数据头
-static void loadPlyHeader(std::ifstream& fileHandle,
-	PlyHeader& header
-)
-{
-	//中间读取到的每一行的结果
-	std::string line;
-	while (std::getline(fileHandle, line))
-	{
-		//新建输入流
-		std::istringstream tempStream(line);
-		//读取一个单词
-		std::string token;
-		tempStream >> token;
-		//判断是不是格式信息
-		if (token == "format")
-		{
-			tempStream >> header.format;
-		}
-		//判断读取到的是不是element信息
-		else if (token == "element")
-		{
-			//再读取element的类型
-			tempStream >> token;
-			//判断是节点个数还是面片的个数
-			if (token == "vertex")
-			{
-				tempStream >> header.verticeNum;
-			}
-			else if (token == "face")
-			{
-				tempStream >> header.faceNum;
-			}
-			else
-			{
-				throw std::runtime_error("Unknown element type");
-			}
-		}
-		//再判断是否读取到了属性信息
-		else if (token == "property")
-		{
-			//新建一个临时的属性
-			PlyProperty tempProperty;
-			//记录它的type和名字
-			tempStream >> tempProperty.type >> tempProperty.name;
-			//把属性放到列表里面
-			header.propertyList.push_back(tempProperty);
-		}
-		//header部分的结束符
-		else if (token == "end_header")
-		{
-			break;
-		}
-
-	}
-}
-
 //载入一个ply文件
 //这仅仅是测试用的函数
 static void loadPointcloud(std::vector<Vertex>& vertexList,std::string filePath)
@@ -207,7 +121,7 @@ static void loadPointcloud(std::vector<Vertex>& vertexList,std::string filePath)
 	std::ifstream fileHandle(filePath, std::ios::binary);
 	//新建ply的头部描述符
 	PlyHeader header;
-	loadPlyHeader(fileHandle, header);
+	GsSplatLib::loadPlyHeader(fileHandle, header);
 	UE_LOG(LogTemp, Warning, TEXT("Read ply header ok"));
 	//读完之后打印一下header信息
 	header.print();
@@ -418,7 +332,7 @@ void AReconstructionUI::cppLoadPlyFile(FString plyPath, UGaussianDescriptor* des
 	std::ifstream fileHandle(stdPlyPath,std::ios::in|std::ios::binary);
 	//读取ply的数据头
 	PlyHeader header;
-	loadPlyHeader(fileHandle, header);
+	GsSplatLib::loadPlyHeader(fileHandle, header);
 	//根据点个数获取texture的大小
 	auto textureSize = getTextureSize(header.verticeNum);
 	//指定节点个数

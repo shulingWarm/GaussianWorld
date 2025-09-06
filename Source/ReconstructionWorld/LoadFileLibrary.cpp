@@ -5,6 +5,7 @@
 
 #include "Runtime\Core\Public\Misc\FileHelper.h"
 #include "Runtime\Core\Public\Misc\Paths.h"
+#include<fstream>
 #include "Developer\DesktopPlatform\Public\IDesktopPlatform.h"
 #include "Developer\DesktopPlatform\Public\DesktopPlatformModule.h"
 #include "HAL/PlatformFileManager.h"
@@ -64,4 +65,11 @@ void ULoadFileLibrary::GetFilesInDirectory(const FString& Directory, TArray<FStr
 
     FFileVisitor Visitor(FileNames);
     PlatformFile.IterateDirectory(*Directory, Visitor);
+}
+
+void ULoadFileLibrary::saveByteArrayAsFile(const char* saveData, uint32_t dataSize, std::string filePath)
+{
+    std::fstream fileHandle(filePath, std::ios::out | std::ios::binary);
+    fileHandle.write(saveData, dataSize);
+    fileHandle.close();
 }

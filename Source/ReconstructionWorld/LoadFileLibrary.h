@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include<string>
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "LoadFileLibrary.generated.h"
 
@@ -14,6 +15,7 @@ class RECONSTRUCTIONWORLD_API ULoadFileLibrary : public UBlueprintFunctionLibrar
 {
 	GENERATED_BODY()
 	
+public:
 
 	//获取用于重建的图片路径
 	UFUNCTION(BlueprintCallable)
@@ -26,4 +28,6 @@ class RECONSTRUCTIONWORLD_API ULoadFileLibrary : public UBlueprintFunctionLibrar
 	// 获取文件夹里面所有的文件
 	static void GetFilesInDirectory(const FString& Directory, TArray<FString>& FileNames);
 
+	// 将二进制数组保存成文件
+	static void saveByteArrayAsFile(const char* saveData, uint32_t dataSize, std::string filePath);
 };

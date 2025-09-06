@@ -36,6 +36,7 @@
 #include"ImageCommLib.hpp"
 #include"ReconstructionCommLib.hpp"
 #include"ReconstructionMessage.hpp"
+#include"ReconstructionPackage.hpp"
 
 #include"ArrayImage.hpp"
 #include"ImageList.hpp"
@@ -83,6 +84,11 @@ UTexture2D* ASocketTest::buildFromMeshQueue(UDynamicMesh* mesh)
 bool ASocketTest::judgeHaveMeshToLoad()
 {
 	return !this->meshTaskQueue.IsEmpty();
+}
+
+bool ASocketTest::judgeHaveSplatLoad()
+{
+	return !this->splatTaskQueue.IsEmpty(); 
 }
 
 void ASocketTest::testSocket()
@@ -260,6 +266,20 @@ void ASocketTest::GenerateMeshFromImage(FString imgPath)
 	}
 }
 
+void ASocketTest::sendReconRequest(FString imgFolder)
+{
+	// 处理重建完成的回调
+	// 里面的具体内容后面再实现
+	auto reconFinishFunctor = makePtr<ReconstructionFinishLambda>(
+		[this](Ptr<GaussianSplatSolver> gsSplat) {
+			// 在本地队列里面记录这些内容
+			this->splatTaskQueue.Enqueue(gsSplat);
+	});
+	// 发送重建请求的消息
+	requestReconstruction(FormatLibrary::convertToStdString(imgFolder),
+		reconFinishFunctor, this->launchedManager, this->launchedManager->streamInterface);
+}
+
 void ASocketTest::launchMessageManager()
 {
 	// 如果manager已经启动，就直接退出
@@ -317,5 +337,18 @@ UTexture2D* ASocketTest::loadMeshFromFile(UDynamicMesh* mesh)
 	// 从mesh solver里面获取ue texture
 	UTexture2D* texture = ueMesh->makeUeTexture();
 	return texture;
+}
+
+void ASocketTest::loadGsSplatToScene(UGaussianDescriptor* descriptor)
+{
+	// 取出第一个gaussian splatting的文件
+	Ptr<GaussianSplatSolver> gsSplat;
+	if (splatTaskQueue.Dequeue(gsSplat)) {
+		// 调用solver里面的填充3D Gaussian数据的逻辑
+		gsSplat->fillGsScene(descriptor);
+	}
+	else {
+		throw std::runtime_error("Read Gaussian Splat Queue failed");
+	}
 }
 
