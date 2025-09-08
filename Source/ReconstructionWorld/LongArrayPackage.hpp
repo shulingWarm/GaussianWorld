@@ -10,6 +10,7 @@ public:
 	Ptr<LongArrayFinishFunctor> finishFunctor = nullptr;
 	// 发送时每次发送的长度
 	uint32_t sendLengthPerRequest = 64 << 10;
+	bool autoDelete;
 
 	LongArrayPackage(uint32_t byteNum) {
 		this->byteNum = byteNum;
@@ -17,10 +18,11 @@ public:
 	}
 
 	LongArrayPackage(char* dataArray, uint32_t byteNum,
-		Ptr<LongArrayFinishFunctor> finishFunctor) {
+		Ptr<LongArrayFinishFunctor> finishFunctor, bool autoDelete=false) {
 		this->dataArray = dataArray;
 		this->byteNum = byteNum;
 		this->finishFunctor = finishFunctor;
+		this->autoDelete = autoDelete;
 	}
 
 	// 从指定起始位置的地方获取数据
@@ -29,6 +31,7 @@ public:
 	}
 
 	virtual ~LongArrayPackage() {
-		delete[] dataArray;
+		if(this->autoDelete)
+			delete[] dataArray;
 	}
 };

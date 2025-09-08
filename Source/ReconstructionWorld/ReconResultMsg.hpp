@@ -11,7 +11,7 @@
 class ReconResultMsg : public AbstractMessage {
 public:
 	// 加载的3DGS文件临时保存的位置
-	const static std::string GS_SAVE = "D:/temp/splat.ply";
+	static constexpr const char* GS_SAVE = "D:/temp/splat.ply";
 
 	ReconResultMsg() : AbstractMessage("ReconResultMsg") {
 
@@ -36,7 +36,7 @@ public:
 		// request时的package
 		auto requestPackage = (ReconstructionPackage*)stream->getPackageManager()->getLocalInfo(requestIdPackage);
 		// 调用从文件中读取3DGS的命令
-		auto gsSolver = makePtr<FileGsSplat>(GS_SAVE);
+		auto gsSolver = makePtr<FileGsSplat>(std::string(GS_SAVE));
 		// 调用重建完成时的操作
 		requestPackage->finishFunctor->onReconstructionFinish(gsSolver);
 		// 删除package

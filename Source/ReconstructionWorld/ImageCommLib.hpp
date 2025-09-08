@@ -6,7 +6,23 @@
 #include"ImageList.hpp"
 #include"ImageListPkg.hpp"
 #include"FormatLibrary.h"
+#include"LoadFileLibrary.h"
+#include"FileCommLib.hpp"
 #include"Types.hpp"
+
+enum IMG_FMT {
+	NONE_IMG = 0,
+	JPEG = 1
+};
+
+// 根据后续字符串获得对应的枚举 
+uint32_t getImgFmtFromStr(std::string str) {
+	if (str == "jpg" || str == "jpeg" || str == "JPG") {
+		return IMG_FMT::JPEG;
+	}
+	throw std::runtime_error("Unknown image format");
+	return 0;
+}
 
 // 发送图片时的LongArray完成的回调
 class LongArrayEndForImage : public LongArrayFinishFunctor {
@@ -59,6 +75,65 @@ void sendImage(Ptr<ImageSolver> image,
 	messageManager->sendMessage(arrayMessage);
 }
 
+// 通过文件逐个发送image的逻辑
+class ImgListPerEndByFile : public LongArrayFinishFunctor,
+	public std::enable_shared_from_this<ImgListPerEndByFile> {
+public:
+	Ptr<ImageList> imgList;
+	Ptr<SentPerImgFuncotr> perImgFunctor;
+	// 所有图片发送完成时的回调函数
+	Ptr<ImgListEndFunctor> imgListEndOp;
+	MessageManagerInterface* msgManager;
+	PackageMsgManager* pkgManager;
+	// 目前已经发送完成的图片数
+	uint32_t sentImgNum = 0;
+
+	ImgListPerEndByFile(Ptr<ImageList> imgList,
+		Ptr<SentPerImgFuncotr> perImgFunctor,
+		Ptr<ImgListEndFunctor> imgListEndOp,
+		MessageManagerInterface* msgManager,
+		PackageMsgManager* pkgManager
+	) {
+		this->imgList = imgList;
+		this->perImgFunctor = perImgFunctor;
+		this->imgListEndOp = imgListEndOp;
+		this->msgManager = msgManager;
+		this->pkgManager = pkgManager;
+		sentImgNum = 0;
+	}
+
+	// 发送下一个图片
+	void sendNextImg() {
+		// 判断是否已经发送了所有的图片
+		if (this->sentImgNum == imgList->getImageNum()) {
+			++this->sentImgNum;
+			// 调用img list发送结束时的操作
+			this->imgListEndOp->imgEndOp(this->imgList);
+			return;
+		}
+		// 下一个图片的id
+		uint32_t nextId = this->sentImgNum;
+		// 下一个的图片路径
+		auto nextPath = this->imgList->imagePathList[nextId];
+		// 发送文件
+		sendFile(nextPath, this->msgManager, this->shared_from_this());
+	}
+
+	virtual void arrayFinishProcess(PackageMsgManager* packageManager,
+		uint32_t idPackage) override {
+		// 检查当前类型的图片是什么数据类型的
+		auto suffix = ULoadFileLibrary::getFileSuffix(
+			this->imgList->imagePathList[sentImgNum]);
+		// 根据字符串获得对应的枚举
+		auto suffixId = getImgFmtFromStr(suffix);
+		// 调用每个图片发送完时的函数
+		perImgFunctor->onPerImgSent(sentImgNum, idPackage, suffixId);
+		++sentImgNum;
+		// 发送下一步图片
+		sendNextImg();
+	}
+};
+
 // 针对image的发送完成时的回调
 class ImageListPerEndCallback : public ImageEndOperation, 
 	public std::enable_shared_from_this<ImageListPerEndCallback> {
@@ -107,7 +182,7 @@ public:
 
 	virtual void imageEndOperation(Ptr<ImageSolver> image, uint32_t idPackage) override {
 		// 调用每个图片发送完时的函数
-		perImgFunctor->onPerImgSent(sentImgNum, idPackage);
+		perImgFunctor->onPerImgSent(sentImgNum, idPackage, IMG_FMT::NONE_IMG);
 		// 释放package
 		this->pkgManager->deletePackagInfo(idPackage);
 		++sentImgNum;
@@ -115,6 +190,18 @@ public:
 		sendNextImg();
 	}
 };
+
+// 用文件形式发送的图片列表
+void sendImgListByFile(Ptr<ImageList> imgList,
+	Ptr<SentPerImgFuncotr> perImgFunctor,
+	MessageManagerInterface* msgManager,
+	PackageMsgManager* pkgManager,
+	Ptr<ImgListEndFunctor> imgListEndOp) {
+	// 初始化通过文件发送回调
+	auto imgListPerEnd = makePtr<ImgListPerEndByFile>(imgList,
+		perImgFunctor, imgListEndOp, msgManager, pkgManager);
+	imgListPerEnd->sendNextImg();
+}
 
 // 发送图片的列表
 void sendImgList(Ptr<ImageList> imgList, 

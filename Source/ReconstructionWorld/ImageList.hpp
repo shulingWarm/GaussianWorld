@@ -17,6 +17,7 @@ public:
 		FString fStringFolder = FormatLibrary::convertToFString(imageFolder);
 		// 获取文件夹里面所有的文件
 		TArray<FString> tempFileList;
+		ULoadFileLibrary::GetFilesInDirectory(fStringFolder, tempFileList);
 		imagePathList.reserve(tempFileList.Num());
 		uint32_t listLength = tempFileList.Num();
 		// 暂时不检查后缀名，这个事以后再说

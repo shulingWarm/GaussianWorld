@@ -37,6 +37,9 @@
 #include"ReconstructionCommLib.hpp"
 #include"ReconstructionMessage.hpp"
 #include"ReconstructionPackage.hpp"
+#include"ReconRecvMsg.hpp"
+#include"ReconBeginMsg.hpp"
+#include"ReconResultMsg.hpp"
 
 #include"ArrayImage.hpp"
 #include"ImageList.hpp"
@@ -316,6 +319,10 @@ void ASocketTest::launchMessageManager()
 	manager->registerMessage(new TextureFinishMessage());
 	manager->registerMessage(new RequestFaceUvMessage(0));
 	manager->registerMessage(new FaceUvFinishMessage());
+	manager->registerMessage(new ReconstructionMessage(0));
+	manager->registerMessage(new ReconRecvMsg());
+	manager->registerMessage(new ReconBeginMsg(0));
+	manager->registerMessage(new ReconResultMsg());
 	
 	
 	// 新建一个主循环的执行器

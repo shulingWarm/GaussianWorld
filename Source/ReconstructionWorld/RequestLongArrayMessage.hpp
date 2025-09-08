@@ -50,6 +50,8 @@ public:
 				package->finishFunctor->arrayFinishProcess(stream->getPackageManager(),
 					requestIdPackage);
 			}
+			// ÊÍ·Årequest
+			stream->getPackageManager()->deletePackagInfo(requestIdPackage);
 		}
 		else {
 			arrayBackFunctor(messageManager, requestIdPackage, requestDataId);

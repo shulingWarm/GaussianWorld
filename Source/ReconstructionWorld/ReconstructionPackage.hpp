@@ -29,18 +29,14 @@ public:
 class ReconstructionPackage : public PackageInfo {
 public:
 	// 需要发送的图片列表
-	ImageList* imageList;
+	Ptr<ImageList> imageList;
 	// 完成重建时的回调
 	Ptr<ReconstructionFinishFunctor> finishFunctor;
 
-	ReconstructionPackage(ImageList* imageList,
+	ReconstructionPackage(Ptr<ImageList> imageList,
 		Ptr<ReconstructionFinishFunctor> finishFunctor
 	) {
 		this->imageList = imageList;
 		this->finishFunctor = finishFunctor;
-	}
-
-	virtual ~ReconstructionPackage() {
-		delete imageList;
 	}
 };

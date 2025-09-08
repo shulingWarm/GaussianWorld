@@ -15,7 +15,7 @@ void requestReconstruction(std::string imageFolder,
 ) {
 	// 用image folcer新建图片的list
 	// 它会在重建package被析构的时候释放
-	ImageList* imageList = new ImageList(imageFolder);
+	auto imageList = makePtr<ImageList>(imageFolder);
 	// 准备重建的package
 	// 它会在重建结果发送完成的消息里面被销毁
 	ReconstructionPackage* reconPackage = new ReconstructionPackage(imageList,

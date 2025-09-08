@@ -30,4 +30,7 @@ public:
 
 	// 将二进制数组保存成文件
 	static void saveByteArrayAsFile(const char* saveData, uint32_t dataSize, std::string filePath);
+
+	// 获取文件的后缀名
+	static std::string getFileSuffix(std::string filePath);
 };

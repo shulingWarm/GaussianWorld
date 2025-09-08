@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "IImageWrapper.h"
 #include "IImageWrapperModule.h"
+#include"LogLibrary.h"
 #include "Runtime/Core/Public/Misc/FileHelper.h"
 
 class ArrayImage : public ImageSolver {
@@ -29,18 +30,23 @@ public:
 
 	//从文件读取图片的函数
 	ArrayImage(FString filePath) {
+		auto& outStream = LogLibrary::getInstance()->fileHandle;
 		//用于存储读取数据的数组
 		TArray<uint8> RawFileData;
 		//读取原始图片文件里面的数据
 		if (!FFileHelper::LoadFileToArray(RawFileData, *filePath))
 		{
+			outStream << "Load image file ok" << std::endl;
 			UE_LOG(LogTemp, Warning, TEXT("Load image file failed!"));
 		}
 		else {
+			outStream << "Load file failed" << std::endl;
 			UE_LOG(LogTemp, Warning, TEXT("Load image ok!"));
 		}
+		outStream << "Load 1" << std::endl;
 		//准备image warper里面的module
 		IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(FName("ImageWrapper"));
+		outStream << "Load 2" << std::endl;
 		//生成获取图片的warper
 		auto imageWrapper = ImageWrapperModule.CreateImageWrapper(EImageFormat::JPEG);
 		//把图片数据注册进image wrapper

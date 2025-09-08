@@ -73,3 +73,38 @@ void ULoadFileLibrary::saveByteArrayAsFile(const char* saveData, uint32_t dataSi
     fileHandle.write(saveData, dataSize);
     fileHandle.close();
 }
+
+std::string ULoadFileLibrary::getFileSuffix(std::string filePath)
+{
+    // 处理空路径
+    if (filePath.empty()) {
+        return "";
+    }
+
+    // 查找最后一个路径分隔符（支持Windows和Unix风格）
+    size_t lastSeparator = filePath.find_last_of("/\\");
+    size_t lastDot = filePath.find_last_of('.');
+
+    // 处理纯文件名（无路径分隔符）
+    size_t fileNameStart = (lastSeparator == std::string::npos) ? 0 : lastSeparator + 1;
+    std::string fileName = filePath.substr(fileNameStart);
+
+    // 处理特殊文件名："." 和 ".."
+    if (fileName == "." || fileName == "..") {
+        return "";
+    }
+
+    // 查找文件名中的最后一个点
+    lastDot = fileName.find_last_of('.');
+
+    // 没有点或点在开头（隐藏文件）或点在结尾（无效后缀）
+    if (lastDot == std::string::npos ||   // 无点
+        lastDot == 0 ||                   // 隐藏文件（如".gitignore"）
+        lastDot == fileName.length() - 1) // 以点结尾（如"file."）
+    {
+        return "";
+    }
+
+    // 提取并返回后缀名
+    return fileName.substr(lastDot + 1);
+}
