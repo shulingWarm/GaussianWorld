@@ -104,7 +104,7 @@ public:
 
 	// 发送下一个图片
 	void sendNextImg() {
-		// 判断是否已经发送了所有的图片
+		// 判断是否已经发送了所有的图片 临时debug只发送一个图片
 		if (this->sentImgNum == imgList->getImageNum()) {
 			++this->sentImgNum;
 			// 调用img list发送结束时的操作
@@ -115,6 +115,7 @@ public:
 		uint32_t nextId = this->sentImgNum;
 		// 下一个的图片路径
 		auto nextPath = this->imgList->imagePathList[nextId];
+		
 		// 发送文件
 		sendFile(nextPath, this->msgManager, this->shared_from_this());
 	}

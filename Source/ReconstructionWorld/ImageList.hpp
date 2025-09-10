@@ -23,9 +23,9 @@ public:
 		// 暂时不检查后缀名，这个事以后再说
 		// 把FString转换成std::string
 		for (uint32_t idImage = 0; idImage < listLength; ++idImage) {
-			imagePathList.push_back(
-				FormatLibrary::convertToStdString(tempFileList[idImage])
-			);
+			// 拼接成绝对路径
+			auto absPath = imageFolder + "/" + FormatLibrary::convertToStdString(tempFileList[idImage]);
+			imagePathList.push_back(absPath);
 		}
 	}
 

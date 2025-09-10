@@ -11,7 +11,7 @@
 class ReconResultMsg : public AbstractMessage {
 public:
 	// 加载的3DGS文件临时保存的位置
-	static constexpr const char* GS_SAVE = "D:/temp/splat.ply";
+	static constexpr const char* GS_SAVE = "E:/temp/splat.ply";
 
 	ReconResultMsg() : AbstractMessage("ReconResultMsg") {
 

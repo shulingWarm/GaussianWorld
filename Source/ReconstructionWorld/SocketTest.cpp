@@ -37,6 +37,8 @@
 #include"ReconstructionCommLib.hpp"
 #include"ReconstructionMessage.hpp"
 #include"ReconstructionPackage.hpp"
+#include"ReconSingleFileImg.hpp"
+#include"ReconSingleImgMsg.hpp"
 #include"ReconRecvMsg.hpp"
 #include"ReconBeginMsg.hpp"
 #include"ReconResultMsg.hpp"
@@ -275,6 +277,7 @@ void ASocketTest::sendReconRequest(FString imgFolder)
 	// 里面的具体内容后面再实现
 	auto reconFinishFunctor = makePtr<ReconstructionFinishLambda>(
 		[this](Ptr<GaussianSplatSolver> gsSplat) {
+			UE_LOG(LogTemp, Warning, TEXT("Saving Gaussian splat to queue"));
 			// 在本地队列里面记录这些内容
 			this->splatTaskQueue.Enqueue(gsSplat);
 	});
@@ -323,6 +326,8 @@ void ASocketTest::launchMessageManager()
 	manager->registerMessage(new ReconRecvMsg());
 	manager->registerMessage(new ReconBeginMsg(0));
 	manager->registerMessage(new ReconResultMsg());
+	manager->registerMessage(new ReconSingleFileImg(0,0,0));
+	manager->registerMessage(new ReconSingleImgMsg(0, 0));
 	
 	
 	// 新建一个主循环的执行器

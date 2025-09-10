@@ -5,12 +5,16 @@
 #include <cstdint> // 包含 uint32_t 的定义
 #include"LongArrayMessage.hpp"
 #include"MessageManager.hpp"
+#include"LogLibrary.h"
 
 char* readDatasInFile(std::string filePath, uint32_t& size) {
+    auto& tempStream = LogLibrary::getInstance()->output();
+    tempStream << "read data in " << filePath << std::endl;
     // 打开文件并定位到末尾以获取文件大小
     std::ifstream file(filePath, std::ios::binary | std::ios::ate);
     if (!file.is_open()) {
         size = 0;  // 文件打开失败，设置大小为0
+        tempStream << "file not open" << std::endl;
         return nullptr;
     }
 
@@ -20,18 +24,21 @@ char* readDatasInFile(std::string filePath, uint32_t& size) {
 
     // 检查文件大小是否为0
     if (size == 0) {
+        tempStream << "file size = 0" << std::endl;
         return nullptr;  // 空文件返回nullptr
     }
 
     // 分配内存缓冲区
     char* buffer = new (std::nothrow) char[size];
     if (!buffer) {
+        tempStream << "allocate failed" << std::endl;
         size = 0;  // 内存分配失败，设置大小为0
         return nullptr;
     }
 
     // 一次性读取整个文件
     if (!file.read(buffer, size)) {
+        tempStream << "read failed" << std::endl;
         delete[] buffer;  // 读取失败时释放内存
         size = 0;         // 设置大小为0
         return nullptr;
