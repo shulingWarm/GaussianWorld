@@ -12,13 +12,17 @@
 
 enum IMG_FMT {
 	NONE_IMG = 0,
-	JPEG = 1
+	JPEG = 1,
+	PNG = 2
 };
 
 // 根据后续字符串获得对应的枚举 
 uint32_t getImgFmtFromStr(std::string str) {
 	if (str == "jpg" || str == "jpeg" || str == "JPG") {
 		return IMG_FMT::JPEG;
+	}
+	else if (str == "png") {
+		return IMG_FMT::PNG;
 	}
 	throw std::runtime_error("Unknown image format");
 	return 0;
