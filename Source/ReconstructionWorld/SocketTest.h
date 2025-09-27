@@ -8,6 +8,7 @@
 #include "GeometryActors/GeneratedDynamicMeshActor.h"
 #include "MessageManager.hpp"
 #include"GaussianSplatSolver.hpp"
+#include"MeshDescriptor.h"
 #include"Containers/CircularQueue.h"
 #include"GaussianDescriptor.h"
 #include"MeshSolver.hpp"
@@ -41,6 +42,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	UTexture2D* buildFromMeshQueue(UDynamicMesh* mesh);
+
+	// 从mesh里面获取mesh descriptor
+	UFUNCTION(BlueprintCallable)
+	UMeshDescriptor* getMeshDescriptorFromQueue();
 
 	// 判断是否有待生成的队列
 	UFUNCTION(BlueprintCallable)

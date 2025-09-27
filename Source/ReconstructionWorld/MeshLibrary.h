@@ -21,4 +21,7 @@ public:
 		FTransform transform,
 		FVector3d preTranslate
 	);
+
+	// 将mesh solver转换成mesh，用来加载到场景中
+
 };

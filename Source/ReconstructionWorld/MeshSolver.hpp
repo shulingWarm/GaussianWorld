@@ -1,11 +1,18 @@
 #pragma once
 #include<iostream>
 #include<string>
+#include"UDynamicMesh.h"
+#include"Types.hpp"
+#include"MeshGenSource.hpp"
 #include "Generators/MeshShapeGenerator.h"
 
 // mesh的抽象接口
 class MeshSolver {
 public:
+	// 当初用于生成Mesh时的描述信息
+	// 最开始的时候它可能是一个图片，但经过图片编辑后它就是图片内容和文本了
+	Ptr<MeshGenSource> meshGenSource = nullptr;
+
 	// 设置节点个数
 	virtual void setVertexNum(uint32_t vertexNum) = 0;
 

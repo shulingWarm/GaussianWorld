@@ -42,6 +42,7 @@
 #include"ReconRecvMsg.hpp"
 #include"ReconBeginMsg.hpp"
 #include"ReconResultMsg.hpp"
+#include"FilePathGenSource.hpp"
 
 #include"ArrayImage.hpp"
 #include"ImageList.hpp"
@@ -74,14 +75,25 @@ void ASocketTest::Tick(float DeltaTime)
 
 UTexture2D* ASocketTest::buildFromMeshQueue(UDynamicMesh* mesh)
 {
-	UE_LOG(LogTemp, Warning, TEXT("buildFromMeshQueue"));
+	//UE_LOG(LogTemp, Warning, TEXT("buildFromMeshQueue"));
+	//Ptr<MeshSolver> ueMesh;
+	//if (this->meshTaskQueue.Dequeue(ueMesh)) {
+	//	// 调用generator生成mesh
+	//	ueMesh->buildUeMesh(mesh);
+	//	// 从mesh solver里面获取ue texture
+	//	UTexture2D* texture = ueMesh->makeUeTexture();
+	//	return texture;
+	//}
+	return nullptr;
+}
+
+UMeshDescriptor* ASocketTest::getMeshDescriptorFromQueue()
+{
 	Ptr<MeshSolver> ueMesh;
 	if (this->meshTaskQueue.Dequeue(ueMesh)) {
-		// 调用generator生成mesh
-		ueMesh->buildUeMesh(mesh);
-		// 从mesh solver里面获取ue texture
-		UTexture2D* texture = ueMesh->makeUeTexture();
-		return texture;
+		UMeshDescriptor* ret = NewObject<UMeshDescriptor>();
+		ret->initMeshSolver(ueMesh);
+		return ret;
 	}
 	return nullptr;
 }
@@ -242,8 +254,11 @@ void ASocketTest::sendHello()
 void ASocketTest::GenerateMeshFromImage(FString imgPath)
 {
 	// 完成mesh生成后，将mesh添加到本地队列里面
-	auto meshFinishFunctor = [this](Ptr<MeshSolver> mesh, uint32_t idPackage) {
+	auto meshFinishFunctor = [this, imgPath](Ptr<MeshSolver> mesh, uint32_t idPackage) {
 		UE_LOG(LogTemp, Warning, TEXT("Finish mesh functor"));
+		// 记录MeshGen的来源
+		mesh->meshGenSource = makePtr<FilePathGenSource>(
+			FormatLibrary::convertToStdString(imgPath));
 		// 将mesh添加到本地队列里面
 		this->meshTaskQueue.Enqueue(mesh);
 	};

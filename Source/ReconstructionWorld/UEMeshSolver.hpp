@@ -202,7 +202,7 @@ public:
 	}
 
 	// 构建ue mesh
-	virtual void buildUeMesh(UDynamicMesh* mesh) override {
+	virtual void buildUeMesh(UDynamicMesh* mesh) {
 		// 添加mesh原语
 		MeshLibrary::addMeshPrimitive(mesh, this, FTransform(), FVector3d::Zero());
 	}
