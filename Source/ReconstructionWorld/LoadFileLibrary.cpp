@@ -9,6 +9,7 @@
 #include "Developer\DesktopPlatform\Public\IDesktopPlatform.h"
 #include "Developer\DesktopPlatform\Public\DesktopPlatformModule.h"
 #include "HAL/PlatformFileManager.h"
+#include "IImageWrapper.h"
 #include "GenericPlatform/GenericPlatformFile.h"
 
 FString ULoadFileLibrary::getImageFolder()
@@ -107,4 +108,20 @@ std::string ULoadFileLibrary::getFileSuffix(std::string filePath)
 
     // 提取并返回后缀名
     return fileName.substr(lastDot + 1);
+}
+
+FString ULoadFileLibrary::fStrGetSuffix(FString filePath)
+{
+    return FPaths::GetExtension(filePath);
+}
+
+int ULoadFileLibrary::getImgEnumByStr(FString suffix)
+{
+    if (suffix.Equals("png")) {
+        return (int)EImageFormat::PNG;
+    }
+    else if (suffix.Equals("jpg", ESearchCase::IgnoreCase) || suffix.Equals("jpeg")) {
+        return (int)EImageFormat::JPEG;
+    }
+    return (int)EImageFormat::Invalid;
 }

@@ -286,6 +286,45 @@ void ASocketTest::GenerateMeshFromImage(FString imgPath)
 	}
 }
 
+void ASocketTest::EditMeshByImage(UMeshDescriptor* meshDesc, FString prompt)
+{
+	// 从mesh描述里面获取 MeshSolver
+	std::string stdImgPath = 
+		meshDesc->meshSolver->meshGenSource->getImgPath();
+	FString imgPath = FormatLibrary::convertToFString(stdImgPath);
+	// 完成mesh生成后，将mesh添加到本地队列里面
+	auto meshFinishFunctor = [this, imgPath](Ptr<MeshSolver> mesh, uint32_t idPackage) {
+		UE_LOG(LogTemp, Warning, TEXT("Finish mesh functor"));
+		// 记录MeshGen的来源
+		mesh->meshGenSource = makePtr<FilePathGenSource>(
+			FormatLibrary::convertToStdString(imgPath));
+		// 将mesh添加到本地队列里面
+		this->meshTaskQueue.Enqueue(mesh);
+		};
+
+	// 图片发送完成时的执行逻辑
+	auto imgEndOperator = makePtr<ImageFuncEndOperation>(
+		[this, meshFinishFunctor](Ptr<ImageSolver> image, uint32_t idPackage) {
+			// 根据图片，发送生成mesh的请求
+			HunyuanMeshGenMessage meshGenMessage(idPackage,
+			makePtr<MeshFinishLambdaFunctor>(meshFinishFunctor));
+		this->launchedManager->sendMessage(meshGenMessage);
+	});
+
+	//通过已经启动的manager发送一个信息
+	if (launchedManager != nullptr) {
+		// 新建图片
+		auto image = makePtr<ArrayImage>(imgPath);
+		// 新建传输图片的消息
+		sendImage(image,
+			launchedManager, imgEndOperator);
+
+		// 发送mesh测试的消息
+		/*MeshTestMessage testMessage;
+		launchedManager->sendMessage(testMessage);*/
+	}
+}
+
 void ASocketTest::sendReconRequest(FString imgFolder)
 {
 	// 处理重建完成的回调

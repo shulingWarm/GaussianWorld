@@ -8,5 +8,10 @@ public:
 
 	FilePathGenSource(std::string imgFilePath) {
 		this->imgFilePath = imgFilePath;
+		this->imgPathAvailable = true;
+	}
+
+	virtual std::string getImgPath() {
+		return imgFilePath;
 	}
 };

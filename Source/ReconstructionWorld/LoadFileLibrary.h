@@ -33,4 +33,10 @@ public:
 
 	// 获取文件的后缀名
 	static std::string getFileSuffix(std::string filePath);
+
+	// FString格式的获取后缀名的函数
+	static FString fStrGetSuffix(FString filePath);
+
+	// 根据图片类型获取IImage的枚举
+	static int getImgEnumByStr(FString suffix);
 };

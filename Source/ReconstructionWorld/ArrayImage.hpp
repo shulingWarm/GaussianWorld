@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "IImageWrapper.h"
 #include "IImageWrapperModule.h"
+#include"LoadFileLibrary.h"
 #include"LogLibrary.h"
 #include "Runtime/Core/Public/Misc/FileHelper.h"
 
@@ -48,7 +49,10 @@ public:
 		IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(FName("ImageWrapper"));
 		outStream << "Load 2" << std::endl;
 		//生成获取图片的warper
-		auto imageWrapper = ImageWrapperModule.CreateImageWrapper(EImageFormat::JPEG);
+		int imageExtension = ULoadFileLibrary::getImgEnumByStr(
+			ULoadFileLibrary::fStrGetSuffix(filePath)
+		);
+		auto imageWrapper = ImageWrapperModule.CreateImageWrapper((EImageFormat)imageExtension);
 		//把图片数据注册进image wrapper
 		imageWrapper->SetCompressed(RawFileData.GetData(), RawFileData.Num());
 		//从imageWrapper里面转换成BGRA数据

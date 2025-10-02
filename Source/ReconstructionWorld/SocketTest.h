@@ -78,6 +78,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void GenerateMeshFromImage(FString imgPath);
 
+	// 执行图片的编辑
+	UFUNCTION(BlueprintCallable)
+	void EditMeshByImage(UMeshDescriptor* meshDesc, FString prompt);
+
 	// 发送重建消息的逻辑
 	UFUNCTION(BlueprintCallable)
 	void sendReconRequest(FString imgFolder);
