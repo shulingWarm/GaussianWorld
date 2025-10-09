@@ -45,7 +45,7 @@ FTransform UTransformLibrary::getCameraTransform(FVector location,
 FVector UTransformLibrary::getCameraLocation(FVector location, float pitch, float planeAngle, float distance)
 {
     // 检查并钳制 pitch 参数到 [0, 90] 范围
-    pitch = FMath::Clamp(pitch, 0.0f, 90.0f);
+    // pitch = FMath::Clamp(pitch, 0.0f, 90.0f);
 
     // 确保距离大于零
     if (distance <= 0.0f)
